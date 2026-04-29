@@ -22,7 +22,8 @@ class Pegawai extends Model
         'is_kontrak',
         'is_kup',
         'is_kupj',
-        'is_jtw'
+        'is_jtw',
+        'emel'
     ];
 
     public function ptj()
@@ -37,7 +38,7 @@ class Pegawai extends Model
 
     public function unit()
     {
-        return $this->belongsTo(Bahagian::class, 'bahagian_id');
+        return $this->belongsTo(Unit::class, 'unit_id');
     }
 
     public function subunit()
@@ -54,5 +55,11 @@ class Pegawai extends Model
     {
         return $this->belongsTo(OpsyenPencen::class, 'bahagian_id');
     }
+
+    public function pegawaiKontrak()
+    {
+        return $this->hasOne(PegawaiKontrak::class);
+    }
+
     
 }

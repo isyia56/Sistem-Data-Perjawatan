@@ -63,17 +63,17 @@ class ProgramsTable
                     )
                     ->listWithLineBreaks(),
 
-                TextColumn::make('butiran')
-                    ->label('Butiran')
-                    ->getStateUsing(function ($record) {
-                        return $record->aktiviti
-                            ->flatMap(function ($aktiviti) {
-                                return $aktiviti->butiran
-                                    ->pluck('butiran');
-                            })
-                            ->toArray();
-                    })
-                    ->listWithLineBreaks(),
+                // TextColumn::make('butiran')
+                //     ->label('Butiran')
+                //     ->getStateUsing(function ($record) {
+                //         return $record->aktiviti
+                //             ->flatMap(function ($aktiviti) {
+                //                 return $aktiviti->butiran
+                //                     ->pluck('butiran');
+                //             })
+                //             ->toArray();
+                //     })
+                //     ->listWithLineBreaks(),
             ])
             ->filters([
                 //

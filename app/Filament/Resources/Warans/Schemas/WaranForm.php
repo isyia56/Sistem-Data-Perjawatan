@@ -21,21 +21,25 @@ class WaranForm
                         TextInput::make('no_waran')
                             ->label('No Waran'),
                         TextInput::make('jik')
-                            ->label('Jumlah Jawatan')
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $items = [];
+    ->label('Jumlah Jawatan')
+    ->numeric()
+    ->reactive()
+    ->afterStateUpdated(function ($state, callable $set) {
 
-                                for ($i = 0; $i < (int) $state; $i++) {
-                                    $items[] = [
-                                        'ptj' => null,
-                                        'jik' => 1,
-                                        'catatan' => '',
-                                    ];
-                                }
+        $items = [];
 
-                                $set('jawatan', $items);
-                            }),
+        for ($i = 0; $i < (int) $state; $i++) {
+            $items[] = [
+                'ptj_id' => null,
+                'aktiviti_id' => null,
+                'butiran' => null,
+                'jawatan_gred_id' => null,
+                'pegawai_id' => null,
+            ];
+        }
+
+        $set('waranJawatan', $items);
+    }),
                         Textarea::make('catatan')
                             ->label('Catatan')
                             ->columnSpanFull()
@@ -45,24 +49,21 @@ class WaranForm
 
                 Section::make('Maklumat Jawatan')
                     ->schema([
-                        Repeater::make('jawatan')
+                        Repeater::make('waranJawatan')
+                        ->relationship()
+    ->addable(false)
+    ->deletable(false)
+                            ->label('Butiran Jawatan')
                             ->schema([
                                 Select::make('ptj_id')
-                                    ->label('PTJ')
+                                    ->relationship('ptj', 'nama_ptj')
                                     ->required()
-                                    ->columnSpanFull()
                                     ->searchable()
-                                    ->preload()
-                                    ->options(
-                                        \App\Models\Ptj::orderBy('nama_ptj')
-                                            ->pluck('nama_ptj', 'id')
-                                            ->toArray()
-                                    ),
+                                    ->preload(),
 
                                 Select::make('aktiviti_id')
-                                    ->label('Aktiviti')
+                                    ->relationship('aktiviti', 'nama_aktiviti')
                                     ->required()
-                                    ->searchable()
                                     ->options(function () {
                                         return \App\Models\Program::with('aktiviti')
                                             ->orderBy('nama_program')
@@ -70,41 +71,60 @@ class WaranForm
                                             ->mapWithKeys(function ($program) {
                                                 return [
                                                     $program->nama_program => $program->aktiviti
-                                                        ->pluck('nama_aktiviti', 'id')
+                                                        ->mapWithKeys(function ($aktiviti) {
+                                                            return [
+                                                                $aktiviti->id => $aktiviti->no_aktivit . ' - ' . $aktiviti->nama_aktiviti
+                                                            ];
+                                                        })
                                                         ->toArray(),
                                                 ];
                                             })
                                             ->toArray();
-                                    }),
-                                Select::make('butiran_id')
-    ->label('Butiran')
-    ->required()
-    ->searchable()
-    ->options(function (callable $get) {
+                                    })
+                                    ->searchable()
+                                    ->preload(),
 
-        $aktivitiId = $get('aktiviti_id');
+                                TextInput::make('butiran')
+                                    ->required(),
 
-        if (! $aktivitiId) {
-            return [];
-        }
+                                Select::make('jawatan_gred_id')
+                                    ->label('Jawatan')
+                                    // ->multiple()
+                                    ->relationship(
+                                        'jawatanGred',
+                                        'id',
+                                        fn($query) => $query
+                                            ->join('jawatans', 'jawatan__greds.jawatan_id', '=', 'jawatans.id')
+                                            ->join('greds', 'jawatan__greds.gred_id', '=', 'greds.id')
+                                            ->select('jawatan__greds.*')
+                                    )
+                                    ->getOptionLabelFromRecordUsing(
+                                        fn($record) =>
+                                        $record->jawatan->desc_jawatan . ' (' . $record->gred->kod_gred . ')'
+                                    )
+                                    ->searchable([
+                                        'jawatans.desc_jawatan',
+                                        'greds.kod_gred'
+                                    ])
+                                    ->preload(),
 
-        return \App\Models\Butiran::where('aktiviti_id', $aktivitiId)
-            ->orderBy('butiran')
-            ->pluck('butiran', 'id')
-            ->toArray();
-    }),
-                                Select::make('Jawatan')
-                                    ->label('Jawatan'),
-                                Select::make('Gred')
-                                    ->label('Gred'),
                                 Select::make('pegawai_id')
-                                    ->label('Nama Pegawai')
-                                    ->columnSpanFull()
-
+                                    ->relationship('pegawai', 'nama')
+                                    ->searchable()
+                                    ->preload()
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2)
-                            ->itemLabel(fn(array $state): ?string => $state['ptj'] ?? null)
-                            ->collapsed(),
+                            ->columns(2)
+                            ->itemLabel(function (array $state) {
+                                if (! $state['ptj_id']) {
+                                    return 'Tambah Jawatan';
+                                }
+
+                                $ptj = \App\Models\Ptj::find($state['ptj_id']);
+
+                                return $ptj?->nama_ptj ?? 'Unknown PTJ';
+                            })->collapsed(),
 
                     ])
                     ->columnSpanFull(),

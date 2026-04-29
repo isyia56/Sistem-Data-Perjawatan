@@ -27,7 +27,7 @@ class PegawaiForm
                             ->label('Nama')
                             ->columnSpanFull()
                             ->required(),
-                        TextInput::make('no_kp')
+                        TextInput::make('nokp')
                             ->label('No Kad Pengenalan')
                             ->required()
                             ->reactive()
@@ -51,7 +51,6 @@ class PegawaiForm
 
                                     // set to tarikh_lahir field (UI only)
                                     $set('tarikh_lahir', $dob->format('Y-m-d'));
-
                                 } catch (\Exception $e) {
                                     // invalid IC → ignore
                                 }
@@ -61,6 +60,9 @@ class PegawaiForm
                             ->native(false)
                             ->displayFormat('d F Y')
                             ->dehydrated(false),
+                            TextInput::make('emel')
+                            ->label('E-mel')
+                            ->email(),
                         Select::make('jantina')
                             ->label('Jantina')
                             ->required()
@@ -124,7 +126,7 @@ class PegawaiForm
 
                         Select::make('jawatan_gred_id')
                             ->label('Jawatan')
-                            ->multiple()
+                            // ->multiple()
                             ->relationship(
                                 'jawatan_gred',
                                 'id',
@@ -203,6 +205,46 @@ class PegawaiForm
                     ->columnSpanFull()
                     ->visible(fn(Get $get) => $get('is_kontrak'))
                     ->schema([
+                        DatePicker::make('tarikh_lantikan1')
+                            ->label('Tarikh Lantikan 1')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_tamat1')
+                            ->label('Tarikh Tamat 1')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_lantikan2')
+                            ->label('Tarikh Lantikan 2')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_tamat2')
+                            ->label('Tarikh Tamat 2')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_lantikan3')
+                            ->label('Tarikh Lantikan 3')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_tamat3')
+                            ->label('Tarikh Tamat 3')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_lantikan4')
+                            ->label('Tarikh Lantikan 4')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_tamat4')
+                            ->label('Tarikh Tamat 4')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_lantikan5')
+                            ->label('Tarikh Lantikan 5')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
+                        DatePicker::make('tarikh_tamat5')
+                            ->label('Tarikh Tamat 5')
+                            ->native(false)
+                            ->displayFormat('d F Y'),
 
                     ])
 
