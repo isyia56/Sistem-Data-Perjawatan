@@ -27,7 +27,7 @@ class BahagianResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Bahagian';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Kawalan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Kawalans';
 
     public static function form(Schema $schema): Schema
     {
