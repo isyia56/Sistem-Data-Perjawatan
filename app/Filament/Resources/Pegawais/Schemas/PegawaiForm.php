@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Pegawais\Schemas;
 
+use App\Models\OpsyenPencen;
 use Carbon\Carbon;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
@@ -27,7 +28,9 @@ class PegawaiForm
                         TextInput::make('nama')
                             ->label('Nama')
                             ->columnSpanFull()
-                            ->required(),
+                            ->required()
+                             ->dehydrateStateUsing(fn(string $state): string => strtoupper($state))
+                            ->extraInputAttributes(['style' => 'text-transform:uppercase']),
                         TextInput::make('nokp')
                             ->label('No Kad Pengenalan')
                             ->required()
@@ -219,7 +222,7 @@ class PegawaiForm
                                     return;
 
                                 // 🔥 get actual value from DB
-                                $opsyen = \App\Models\OpsyenPencen::find($state);
+                                $opsyen = OpsyenPencen::find($state);
 
                                 if (!$opsyen)
                                     return;
