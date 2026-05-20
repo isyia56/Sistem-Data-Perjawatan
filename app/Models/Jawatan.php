@@ -15,7 +15,46 @@ class Jawatan extends Model
 
     public function greds()
 {
-    return $this->belongsToMany(Gred::class, 'jawatan__greds')
-        ->distinct();
+    return $this->belongsToMany(
+        Gred::class,
+        'jawatan__greds'
+    )->withPivot('kumpulan_id');
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
