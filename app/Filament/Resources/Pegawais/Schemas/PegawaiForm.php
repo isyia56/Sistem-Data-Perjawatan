@@ -2,14 +2,20 @@
 
 namespace App\Filament\Resources\Pegawais\Schemas;
 
+use App\Models\Jawatan;
+use App\Models\Jawatan_Gred;
+use App\Models\OpsyenPencen;
 use Carbon\Carbon;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class PegawaiForm
@@ -26,7 +32,9 @@ class PegawaiForm
                         TextInput::make('nama')
                             ->label('Nama')
                             ->columnSpanFull()
-                            ->required(),
+                            ->required()
+                            ->dehydrateStateUsing(fn(string $state): string => strtoupper($state))
+                            ->extraInputAttributes(['style' => 'text-transform:uppercase']),
                         TextInput::make('nokp')
                             ->label('No Kad Pengenalan')
                             ->required()
@@ -55,14 +63,14 @@ class PegawaiForm
                                     // invalid IC → ignore
                                 }
                             }),
-                        DatePicker::make('tarikh_lahir')
-                            ->label('Tarikh Lahir')
-                            ->native(false)
-                            ->displayFormat('d F Y')
-                            ->dehydrated(false),
-                            TextInput::make('emel')
-                            ->label('E-mel')
-                            ->email(),
+                        // DatePicker::make('tarikh_lahir')
+                        //     ->label('Tarikh Lahir')
+                        //     ->native(false)
+                        //     ->displayFormat('d F Y')
+                        //     ->dehydrated(false),
+                        //     TextInput::make('emel')
+                        //     ->label('E-mel')
+                        //     ->email(),
                         Select::make('jantina')
                             ->label('Jantina')
                             ->required()
@@ -92,7 +100,8 @@ class PegawaiForm
                                     ->pluck('nama_bahagian', 'id');
                             })
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->columnSpanFull(),
 
                         Select::make('unit_id')
                             ->label('Unit')
@@ -124,36 +133,163 @@ class PegawaiForm
                             ->searchable()
                             ->preload(),
 
-                        Select::make('jawatan_gred_id')
-                            ->label('Jawatan')
-                            // ->multiple()
-                            ->relationship(
-                                'jawatan_gred',
-                                'id',
-                                fn($query) => $query
-                                    ->join('jawatans', 'jawatan__greds.jawatan_id', '=', 'jawatans.id')
-                                    ->join('greds', 'jawatan__greds.gred_id', '=', 'greds.id')
-                                    ->select('jawatan__greds.*')
-                            )
-                            ->getOptionLabelFromRecordUsing(
-                                fn($record) =>
-                                $record->jawatan->desc_jawatan . ' (' . $record->gred->kod_gred . ')'
-                            )
-                            ->searchable([
-                                'jawatans.desc_jawatan',
-                                'greds.kod_gred'
-                            ])
-                            ->preload(),
+                        // Select::make('jawatan_gred_id')
+                        //     ->label('Jawatan')
+                        //     // ->multiple()
+                        //     ->relationship(
+                        //         'jawatan_gred',
+                        //         'id',
+                        //         fn($query) => $query
+                        //             ->join('jawatans', 'jawatan__greds.jawatan_id', '=', 'jawatans.id')
+                        //             ->join('greds', 'jawatan__greds.gred_id', '=', 'greds.id')
+                        //             ->select('jawatan__greds.*')
+                        //     )
+                        //     ->getOptionLabelFromRecordUsing(
+                        //         fn($record) =>
+                        //         $record->jawatan->desc_jawatan . ' (' . $record->gred->kod_gred . ')'
+                        //     )
+                        //     ->searchable([
+                        //         'jawatans.desc_jawatan',
+                        //         'greds.kod_gred'
+                        //     ])
+                        //     ->preload(),
 
+                        // Select::make('jawatan_id')
+                        //     ->label('Jawatan')
+                        //     // ->multiple()
+                        //     ->options(
+                        //         Jawatan::orderBy('desc_jawatan')
+                        //             ->pluck('desc_jawatan', 'id')
+                        //             ->toArray()
+                        //     )
+                        //     ->searchable()
+                        //     ->preload()
+                        //     ->live(),
+
+
+
+                        Select::make('jawatan_id')
+                            ->label('Jawatan')
+                            ->options(
+                                Jawatan::query()
+                                    ->orderBy('desc_jawatan')
+                                    ->pluck('desc_jawatan', 'id')
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->reactive()
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function ($state, Get $get, Set $set) {
+
+                                $jawatanGredId = $get('jawatan_gred_id');
+
+                                if (!$jawatanGredId) {
+                                    return;
+                                }
+
+                                $jawatanGred = Jawatan_Gred::find($jawatanGredId);
+
+                                if (!$jawatanGred) {
+                                    return;
+                                }
+
+                                $set('jawatan_id', $jawatanGred->jawatan_id);
+                            }),
+
+                        Select::make('gred_id')
+                            ->label('Gred')
+                            ->options(function (Get $get) {
+
+                                $jawatanId = $get('jawatan_id');
+
+                                if (blank($jawatanId)) {
+                                    return [];
+                                }
+
+                                return Jawatan_Gred::query()
+                                    ->where('jawatan_id', $jawatanId)
+                                    ->join('greds', 'jawatan__greds.gred_id', '=', 'greds.id')
+                                    ->pluck('greds.kod_gred', 'greds.id')
+                                    ->toArray();
+                            })
+                            ->live()
+                            ->searchable()
+                            ->preload()
+                            ->dehydrated(false)
+                            // ->multiple()
+                            ->disabled(fn(Get $get) => blank($get('jawatan_id')))
+                            ->afterStateHydrated(function ($state, Get $get, Set $set) {
+
+                                $jawatanGredId = $get('jawatan_gred_id');
+
+                                if (!$jawatanGredId) {
+                                    return;
+                                }
+
+                                $jawatanGred = Jawatan_Gred::find($jawatanGredId);
+
+                                if (!$jawatanGred) {
+                                    return;
+                                }
+
+                                $set('gred_id', $jawatanGred->gred_id);
+                            })
+                            ->afterStateUpdated(function ($state, Get $get, Set $set) {
+
+                                if (blank($state)) {
+                                    return;
+                                }
+
+                                $jawatanGred = Jawatan_Gred::query()
+                                    ->where('jawatan_id', $get('jawatan_id'))
+                                    ->where('gred_id', $state)
+                                    ->first();
+
+                                $set('jawatan_gred_id', $jawatanGred?->id);
+
+                                // 🔥 reset dependent fields
+                                $set('pegawai_id', null);
+                                $set('butiran', null);
+                            }),
+                        Hidden::make('jawatan_gred_id'),
                         Checkbox::make('is_kontrak')
                             ->label('KONTRAK')
-                            ->reactive(),
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                if ($state) {
+                                    $set('is_tetap', false);
+                                    $set('is_kontrak_interim', false);
+                                }
+                            }),
                         Checkbox::make('is_kup')
-                            ->label('KUP'),
+                            ->label('KHAS UNTUK PENYANDANG (KUP)'),
+
+                        Checkbox::make('is_tetap')
+                            ->label('TETAP')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                if ($state) {
+                                    $set('is_kontrak', false);
+                                    $set('is_kontrak_interim', false);
+                                }
+                            }),
+
                         Checkbox::make('is_kupj')
                             ->label('KUPJ'),
+
+                        Checkbox::make('is_kontrak_interim')
+                            ->label('KONTRAK INTERIM')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                if ($state) {
+                                    $set('is_kontrak', false);
+                                    $set('is_tetap', false);
+                                }
+                            }),
+
                         Checkbox::make('is_jtw')
-                            ->label('JTW'),
+                            ->label('JAWATAN TANPA WARAN (JTW)'),
 
                     ]),
                 Section::make('Maklumat Lantikan')
@@ -183,7 +319,7 @@ class PegawaiForm
                                     return;
 
                                 // 🔥 get actual value from DB
-                                $opsyen = \App\Models\OpsyenPencen::find($state);
+                                $opsyen = OpsyenPencen::find($state);
 
                                 if (!$opsyen)
                                     return;

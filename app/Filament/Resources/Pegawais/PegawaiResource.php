@@ -22,6 +22,14 @@ class PegawaiResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'nama';
 
+    protected static ?string $modelLabel = 'Pegawai';
+    protected static ?string $pluralModelLabel = 'Pegawai';
+    protected static ?string $navigationLabel = 'Pegawai';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Buku Waran';
+
+    protected static ?int $navigationSort = 2;
+
     public static function form(Schema $schema): Schema
     {
         return PegawaiForm::configure($schema);
