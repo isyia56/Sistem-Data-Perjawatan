@@ -42,7 +42,7 @@ class WaranForm
                     ->schema([
                         TextInput::make('no_waran')
                             ->label('No Waran')
-                            ->unique(Waran::class, 'no_waran', ignorable: fn(Get $get) => $get('id'))
+                            ->unique(ignoreRecord: true)
                             ->reactive(),
 
                         TextInput::make('jik')
@@ -54,7 +54,7 @@ class WaranForm
                             ->label('Catatan')
                             ->columnSpanFull(),
                         Radio::make('jenis')
-                        ->label('Jenis Waran')
+                            ->label('Jenis Waran')
                             ->options([
                                 'tambah' => 'Tambah Jawatan',
                                 'tolak' => 'Tolak Jawatan',
@@ -431,11 +431,5 @@ class WaranForm
 
 
     }
-    public function test()
-    {
-        Notification::make()
-            ->title('Livewire working')
-            ->success()
-            ->send();
-    }
+
 }

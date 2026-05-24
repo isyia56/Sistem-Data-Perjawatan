@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\Warans\RelationManagers;
 
+use App\Models\Bahagian;
 use App\Models\Gred;
 use App\Models\Jawatan;
 use App\Models\Jawatan_Gred;
 use App\Models\Pegawai;
 use App\Models\Program;
 use App\Models\Ptj;
+use App\Models\Subunit;
+use App\Models\Unit;
 use App\Models\WaranJawatan;
 use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
@@ -22,7 +25,10 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Tabs;
@@ -82,34 +88,36 @@ class WaranJawatansRelationManager extends RelationManager
                     ->required()
                     ->maxLength(255),
 
-                Select::make('jawatan_id')
+                Select::make('jawatan_ids')
                     ->label('Jawatan')
+                    ->multiple()
                     ->options(
                         Jawatan::orderBy('desc_jawatan')
                             ->pluck('desc_jawatan', 'id')
+                            ->toArray()
                     )
                     ->searchable()
                     ->preload()
                     ->live(),
-
                 Select::make('gred_ids')
                     ->label('Gred')
                     ->multiple()
                     ->options(function (Get $get) {
 
-                        $jawatanId = $get('jawatan_id');
+                        $jawatanIds = $get('jawatan_ids');
 
-                        if (!$jawatanId) {
+                        if (blank($jawatanIds)) {
                             return [];
                         }
 
                         return Jawatan_Gred::query()
-                            ->where('jawatan_id', $jawatanId)
+                            ->whereIn('jawatan_id', $jawatanIds)
                             ->join('greds', 'jawatan__greds.gred_id', '=', 'greds.id')
+                            ->orderBy('greds.kod_gred')
                             ->pluck('greds.kod_gred', 'greds.id')
                             ->toArray();
                     })
-                    ->disabled(fn(Get $get) => blank($get('jawatan_id')))
+                    ->disabled(fn(Get $get) => blank($get('jawatan_ids')))
                     ->searchable()
                     ->preload()
                     ->multiple()
@@ -122,41 +130,110 @@ class WaranJawatansRelationManager extends RelationManager
                     )
                     ->searchable()
                     ->preload()
+                    ->live()
                     ->required()
                     ->columnSpanFull(),
+
+                Select::make('bahagian_id')
+                    ->label('Bahagian')
+                    ->options(function (Get $get) {
+
+                        $ptjId = $get('ptj_id');
+
+                        if (blank($ptjId)) {
+                            return [];
+                        }
+
+                        return Bahagian::query()
+                            ->where('ptj_id', $ptjId)
+                            ->orderBy('nama_bahagian')
+                            ->pluck('nama_bahagian', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->live()
+                    ->disabled(fn(Get $get) => blank($get('ptj_id')))
+                    ->columnSpanFull(),
+
+                Select::make('unit_id')
+                    ->label('Unit')
+                    ->options(function (Get $get) {
+                        $bahagianId = $get('bahagian_id');
+
+                        if (blank($bahagianId)) {
+                            return [];
+                        }
+
+                        return Unit::query()
+                            ->where('bahagian_id', $bahagianId)
+                            ->orderBy('nama_unit')
+                            ->pluck('nama_unit', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->live()
+                    ->preload(),
+
+                Select::make('subunit_id')
+                    ->label('Subunit')
+                    ->options(function (Get $get) {
+                        $unitId = $get('unit_id');
+
+                        if (blank($unitId)) {
+                            return [];
+                        }
+
+                        return Subunit::query()
+                            ->where('unit_id', $unitId)
+                            ->orderBy('nama_subunit')
+                            ->pluck('nama_subunit', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload(),
 
                 Select::make('pegawai_id')
                     ->label('Pegawai')
                     ->options(function (Get $get) {
 
-                        $jawatanId = $get('jawatan_id');
+                        $jawatanIds = $get('jawatan_ids');
                         $gredIds = $get('gred_ids');
 
-                        if (blank($jawatanId) || blank($gredIds)) {
+                        if (blank($jawatanIds) || blank($gredIds)) {
                             return [];
                         }
 
-                        // get matching jawatan_gred ids
                         $jawatanGredIds = Jawatan_Gred::query()
-                            ->where('jawatan_id', $jawatanId)
+                            ->whereIn('jawatan_id', $jawatanIds)
                             ->whereIn('gred_id', $gredIds)
                             ->pluck('id');
 
                         return Pegawai::query()
                             ->whereIn('jawatan_gred_id', $jawatanGredIds)
+                            ->whereNotIn('id', function ($q) {
+                                $q->select('pegawai_id')
+                                    ->from('waran_jawatans')
+                                    ->whereNotNull('pegawai_id');
+                            })
                             ->orderBy('nama')
                             ->pluck('nama', 'id')
                             ->toArray();
                     })
-
                     ->searchable()
-                    ->preload()
                     ->live()
-
+                    ->preload()
+                    ->columnSpanFull()
                     ->disabled(function (Get $get) {
-                        return blank($get('jawatan_id'))
+                        return blank($get('jawatan_ids'))
                             || blank($get('gred_ids'));
-                    })
+                    }),
+
+                Checkbox::make('is_kup')
+                    ->label('Khas Untuk Penyandang (KUP)'),
+
+                Textarea::make('catatan_jawatan')
+                    ->label('Catatan')
 
                     ->columnSpanFull(),
             ]);
@@ -166,7 +243,7 @@ class WaranJawatansRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-        
+
             ->recordTitleAttribute('ptj')
 
             ->modifyQueryUsing(function (Builder $query) {
@@ -178,14 +255,15 @@ class WaranJawatansRelationManager extends RelationManager
                 if ($waran->jenis !== 'tolak') {
 
                     return $query
-
                         ->where('waran_id', $waran->id)
+                        ->where('status', '!=', 'deleted')
                         ->orderByRaw("status = 'removed' ASC")
                         ->orderBy('id', 'asc');
                 }
 
                 if ($this->viewMode === 'active') {
-                    return $query->whereNull('deleted_at');
+                    return $query->whereNull('deleted_at')
+                        ->where('status', '!=', 'deleted');
                 }
 
                 if ($this->viewMode === 'inactive') {
@@ -225,32 +303,33 @@ class WaranJawatansRelationManager extends RelationManager
                     ->color(
                         fn($record) =>
                         $record->status === 'removed' ? 'gray' : 'default'
-                    ),
-                TextColumn::make('jawatan.desc_jawatan')
-                    ->searchable()
-                    ->color(
-                        fn($record) =>
-                        $record->status === 'removed' ? 'gray' : 'default'
-                    ),
-                TextColumn::make('gred_list')
-                    ->label('Gred')
-                    ->color(
-                        fn($record) =>
-                        $record->status === 'removed' ? 'gray' : 'default'
-                    ),
+                    )
+                    ->wrap(),
+               TextColumn::make('jawatan_gred_display')
+    ->label('Jawatan / Gred')
+    ->state(function ($record) {
+        return $record->jawatan_list . '<br>' . $record->gred_list;
+    })
+    ->html()
+    ->wrap()
+    ->color(fn ($record) =>
+        $record->status === 'removed' ? 'gray' : 'default'
+    ),
                 TextColumn::make('ptj.nama_ptj')
                     ->searchable()
                     ->color(
                         fn($record) =>
                         $record->status === 'removed' ? 'gray' : 'default'
-                    ),
-                TextColumn::make('pegawai.nama')
-                    ->label('Nama Penyandang')
-                    ->searchable()
-                    ->color(
-                        fn($record) =>
-                        $record->status === 'removed' ? 'gray' : 'default'
-                    ),
+                    )
+                    ->wrap(),
+                // TextColumn::make('pegawai.nama')
+                //     ->label('Nama Penyandang')
+                //     ->searchable()
+                //     ->color(
+                //         fn($record) =>
+                //         $record->status === 'removed' ? 'gray' : 'default'
+                //     )
+                //     ->wrap(),
                 TextColumn::make('status')
                     ->badge()
                     ->size('lg')
@@ -314,19 +393,27 @@ class WaranJawatansRelationManager extends RelationManager
                     ->label('Tambah jawatan')
                     ->visible(fn() => $this->getOwnerRecord()->jenis === 'tambah'),
 
-                Action::make('active')
-                    ->label('Aktif')
-                    ->color(fn() => $this->viewMode === 'active' ? 'primary' : 'gray')
-                    ->action(fn($livewire) => $livewire->viewMode = 'active')
-                    ->button()
+                // Action::make('active')
+                //     ->label('Aktif')
+                //     ->color(fn() => $this->viewMode === 'active' ? 'primary' : 'gray')
+                //     ->action(fn($livewire) => $livewire->viewMode = 'active')
+                //     ->button()
+                //     ->visible(fn() => $this->getOwnerRecord()->jenis === 'tolak'),
+
+                // Action::make('inactive')
+                //     ->label('Dibuang')
+                //     ->color(fn() => $this->viewMode === 'inactive' ? 'danger' : 'gray')
+                //     ->action(fn($livewire) => $livewire->viewMode = 'inactive')
+                //     ->button()
+                //     ->visible(fn() => $this->getOwnerRecord()->jenis === 'tolak'),
+
+                Action::make('viewModeTabs')
+                    ->label('')
+                    ->view('filament.custom.warans.view-mode-tabs', [
+                        'viewMode' => fn($livewire) => $livewire->viewMode,
+                    ])
                     ->visible(fn() => $this->getOwnerRecord()->jenis === 'tolak'),
 
-                Action::make('inactive')
-                    ->label('Dibuang')
-                    ->color(fn() => $this->viewMode === 'inactive' ? 'danger' : 'gray')
-                    ->action(fn($livewire) => $livewire->viewMode = 'inactive')
-                    ->button()
-                    ->visible(fn() => $this->getOwnerRecord()->jenis === 'tolak'),
             ])
 
 
@@ -348,12 +435,34 @@ class WaranJawatansRelationManager extends RelationManager
             ])
             ->actions([
 
+                ViewAction::make('view')
+                    ->color('info'),
+
                 EditAction::make()
                     ->visible(
                         fn($record) =>
                         $this->getOwnerRecord()->jenis === 'tambah'
                         && $record->status === 'active'
                     ),
+
+                Action::make('delete')
+                    ->label('Delete')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(
+                        fn($record) =>
+                        $this->getOwnerRecord()->jenis === 'tambah'
+                        && $record->status === 'active'
+                    )
+                    ->action(function ($record) {
+
+                        $record->update([
+                            'status' => 'deleted',
+                        ]);
+                        $record->delete();
+                    }),
+
 
                 Action::make('remove')
                     ->label('Buang Jawatan')

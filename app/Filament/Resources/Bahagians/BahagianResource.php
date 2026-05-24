@@ -29,6 +29,9 @@ class BahagianResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Kawalan';
 
+        protected static ?int $navigationSort = 12;
+
+
     public static function form(Schema $schema): Schema
     {
         return BahagianForm::configure($schema);
