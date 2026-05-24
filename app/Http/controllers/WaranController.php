@@ -13,21 +13,49 @@ class WaranController extends Controller
 {
     // Replace your index() method in WaranController with this:
 
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     $search = $request->get('search');
+    //     $status = $request->get('status');
+
+    //     $query = Waran::with(['waranJawatan']);
+
+    //     // Search by no_waran
+    //     if ($search) {
+    //         $query->where('no_waran', 'like', "%$search%");
+    //     }
+
+    //     $items = $query->paginate(20)->withQueryString();
+
+    //     // Filter by status (after paginate to get accurate stats)
+    //     $allWarans = Waran::with(['waranJawatan'])->get();
+    //     $stats = [
+    //         'lebih'    => $allWarans->filter(fn($w) => $w->status_jik === 'Lebih')->count(),
+    //         'kurang'   => $allWarans->filter(fn($w) => $w->status_jik === 'Kurang')->count(),
+    //         'seimbang' => $allWarans->filter(fn($w) => $w->status_jik === 'Seimbang')->count(),
+    //     ];
+
+    //     // Apply status filter after getting stats
+    //     if ($status) {
+    //         $filteredIds = $allWarans->filter(fn($w) => $w->status_jik === $status)->pluck('id');
+    //         $query2 = Waran::with(['waranJawatan'])->whereIn('id', $filteredIds);
+    //         if ($search) {
+    //             $query2->where('no_waran', 'like', "%$search%");
+    //         }
+    //         $items = $query2->paginate(20)->withQueryString();
+    //     }
+
+    //     return view('waran.index', compact('items', 'stats', 'search', 'status'));
+    // }
+        public function index(Request $request)
     {
         $search = $request->get('search');
         $status = $request->get('status');
+        $programId = $request->get('program_id');
 
-        $query = Waran::with(['waranJawatan']);
+        // Get all programs for filter tabs
+        $programs = \App\Models\Program::orderBy('nama_program')->get();
 
-        // Search by no_waran
-        if ($search) {
-            $query->where('no_waran', 'like', "%$search%");
-        }
-
-        $items = $query->paginate(20)->withQueryString();
-
-        // Filter by status (after paginate to get accurate stats)
         $allWarans = Waran::with(['waranJawatan'])->get();
         $stats = [
             'lebih'    => $allWarans->filter(fn($w) => $w->status_jik === 'Lebih')->count(),
@@ -35,17 +63,27 @@ class WaranController extends Controller
             'seimbang' => $allWarans->filter(fn($w) => $w->status_jik === 'Seimbang')->count(),
         ];
 
-        // Apply status filter after getting stats
-        if ($status) {
-            $filteredIds = $allWarans->filter(fn($w) => $w->status_jik === $status)->pluck('id');
-            $query2 = Waran::with(['waranJawatan'])->whereIn('id', $filteredIds);
-            if ($search) {
-                $query2->where('no_waran', 'like', "%$search%");
-            }
-            $items = $query2->paginate(20)->withQueryString();
+        $query = Waran::with(['waranJawatan']);
+
+        if ($search) {
+            $query->where('no_waran', 'like', "%$search%");
         }
 
-        return view('waran.index', compact('items', 'stats', 'search', 'status'));
+        // Filter by program
+        if ($programId) {
+            $aktivitiIds = \App\Models\Aktiviti::where('program_id', $programId)->pluck('id');
+            $query->whereHas('waranJawatan', fn($q) => $q->whereIn('aktiviti_id', $aktivitiIds));
+        }
+
+        $items = $query->paginate(20)->withQueryString();
+
+        // Apply status filter
+        if ($status) {
+            $filteredIds = $allWarans->filter(fn($w) => $w->status_jik === $status)->pluck('id');
+            $items = $query->whereIn('id', $filteredIds)->paginate(20)->withQueryString();
+        }
+
+        return view('waran.index', compact('items', 'stats', 'search', 'status', 'programs', 'programId'));
     }
 
     public function create()

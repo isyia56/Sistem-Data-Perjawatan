@@ -19,6 +19,7 @@ use App\Http\Controllers\ParlimenController;
 use App\Http\Controllers\DunController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\JawatanGredController;
+use App\Http\Controllers\DashboardController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -52,9 +53,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Logout
     Route::post('/logout', function (Request $request) {
@@ -90,4 +89,5 @@ Route::middleware('auth')->group(function () {
     // Sistem
     Route::resource('pengguna', PenggunaController::class);
     Route::resource('jawatan-gred', JawatanGredController::class);
+
 });

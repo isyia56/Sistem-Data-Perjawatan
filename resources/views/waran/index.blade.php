@@ -65,6 +65,24 @@
     </div>
 </div>
 
+{{-- Program Filter Tabs --}}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route('waran.index', array_merge(request()->except('program_id'), [])) }}"
+               class="btn btn-sm {{ !request('program_id') ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Semua
+            </a>
+            @foreach($programs as $program)
+            <a href="{{ route('waran.index', array_merge(request()->query(), ['program_id' => $program->id])) }}"
+               class="btn btn-sm {{ request('program_id') == $program->id ? 'btn-primary' : 'btn-outline-secondary' }}">
+                {{ $program->nama_program }}
+            </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 {{-- Main Table Card --}}
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
