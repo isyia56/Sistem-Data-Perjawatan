@@ -9,6 +9,7 @@ use App\Filament\Resources\Warans\Pages\ListWarans;
 use App\Filament\Resources\Warans\RelationManagers\WaranJawatansRelationManager;
 use App\Filament\Resources\Warans\Schemas\WaranForm;
 use App\Filament\Resources\Warans\Tables\WaransTable;
+use App\Filament\Resources\Warans\Widgets\WaranStats;
 use App\Models\Waran;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -31,6 +32,9 @@ class WaranResource extends Resource
     protected static ?string $pluralModelLabel = 'Waran';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Buku Waran';
+
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
@@ -73,4 +77,16 @@ public static function getRelations(): array
             'catatan' => Waran::find($id)?->catatan,
         ]);
     }
+
+ public static function getWidgets(): array
+{
+    return [
+        WaranStats::class,
+    ];
+}
+
+public static function getHeaderWidgets(): array
+{
+    return [];
+}
 }

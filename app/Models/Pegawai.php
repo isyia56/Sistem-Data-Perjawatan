@@ -19,6 +19,8 @@ class Pegawai extends Model
         'tarikh_lantikan',
         'tarikh_sah_jawatan',
         'tarikh_pencen',
+        'is_tetap',
+        'is_kontrak_interim',
         'is_kontrak',
         'is_kup',
         'is_kupj',
@@ -61,5 +63,5 @@ class Pegawai extends Model
         return $this->hasOne(PegawaiKontrak::class);
     }
 
-    
+
 }

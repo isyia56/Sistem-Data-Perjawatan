@@ -31,6 +31,8 @@ class JawatanResource extends Resource
     protected static ?string $pluralModelLabel = 'Jawatan & Gred';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Kawalan';
+        protected static ?int $navigationSort = 16;
+
 
     public static function form(Schema $schema): Schema
     {
