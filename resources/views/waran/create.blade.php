@@ -69,6 +69,10 @@
     .select2-dropdown {
         max-width: 100% !important;
     }
+        /* Fix body overflow from select2 dropdown */
+    body {
+        overflow-x: hidden !important;
+    }
 </style>
 @endpush
 
@@ -94,33 +98,56 @@
     <div class="card mb-4">
         <div class="card-header"><h5 class="mb-0">Maklumat Waran</h5></div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fs-6">No Waran</label>
-                    <input type="text" name="no_waran"
-                        class="form-control @error('no_waran') is-invalid @enderror"
-                        value="{{ old('no_waran') }}">
-                    @error('no_waran')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fs-6">Jumlah Jawatan (JIK)</label>
-                    <input type="number" name="jik" id="jikInput"
-                        class="form-control @error('jik') is-invalid @enderror"
-                        value="{{ old('jik', 1) }}" min="1" max="100">
-                    @error('jik')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fs-6">Punca Kuasa</label>
-                    <input type="text" name="puncakuasa"
-                        class="form-control @error('puncakuasa') is-invalid @enderror"
-                        value="{{ old('puncakuasa') }}">
-                    @error('puncakuasa')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fs-6">Catatan</label>
-                    <textarea name="catatan" class="form-control" rows="2">{{ old('catatan') }}</textarea>
-                </div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label fs-6">No Waran</label>
+        <input type="text" name="no_waran"
+            class="form-control @error('no_waran') is-invalid @enderror"
+            value="{{ old('no_waran') }}">
+        @error('no_waran')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">Jumlah Jawatan (JIK)</label>
+        <input type="number" name="jik" id="jikInput"
+            class="form-control @error('jik') is-invalid @enderror"
+            value="{{ old('jik', 1) }}" min="1" max="100">
+        @error('jik')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">Punca Kuasa</label>
+        <input type="text" name="puncakuasa"
+            class="form-control @error('puncakuasa') is-invalid @enderror"
+            value="{{ old('puncakuasa') }}">
+        @error('puncakuasa')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">Catatan</label>
+        <textarea name="catatan" class="form-control" rows="2">{{ old('catatan') }}</textarea>
+    </div>
+    <div class="col-12">
+        <label class="form-label fs-6">Jenis Waran</label>
+        <div class="d-flex gap-4">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="jenis"
+                    id="jenisTambah" value="tambah"
+                    {{ old('jenis', 'tambah') == 'tambah' ? 'checked' : '' }}>
+                <label class="form-check-label" for="jenisTambah">
+                    <span class="fw-semibold">Tambah Jawatan</span><br>
+                    <small class="text-muted">Menambah jawatan baru.</small>
+                </label>
             </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="jenis"
+                    id="jenisTolak" value="tolak"
+                    {{ old('jenis') == 'tolak' ? 'checked' : '' }}>
+                <label class="form-check-label" for="jenisTolak">
+                    <span class="fw-semibold">Tolak Jawatan</span><br>
+                    <small class="text-muted">Mengurangkan jawatan sedia ada.</small>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 

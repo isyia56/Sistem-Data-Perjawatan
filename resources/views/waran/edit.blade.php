@@ -4,72 +4,66 @@
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <style>
-    #jawatanRows .form-select,
-    #jawatanRows .form-control {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
     #jawatanRows td {
         padding: 6px 4px;
+        vertical-align: middle;
     }
     .table thead th {
         font-size: 0.75rem;
         letter-spacing: 0.05em;
     }
+
+    /* Select2 sizing */
     .select2-container {
         width: 100% !important;
-    }
-        .select2-container--bootstrap-5 .select2-selection {
-        font-size: 0.8rem;
-    }
-    .select2-container--bootstrap-5 .select2-selection {
-    font-size: 0.8rem;
+        max-width: 100% !important;
     }
 
+    /* Select2 input styling */
+    .select2-container--bootstrap-5 .select2-selection {
+        font-size: 0.8rem;
+        background-color: transparent !important;
+        border-color: #444 !important;
+        color: inherit !important;
+        min-height: 38px;
+    }
     .select2-container--bootstrap-5 .select2-selection__rendered {
         font-size: 0.8rem;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
         padding-right: 40px !important;
+        color: inherit !important;
     }
-    .select2-container--bootstrap-5 .select2-selection {
-    font-size: 0.8rem;
-    background-color: transparent !important;
-    border-color: #444 !important;
-    color: inherit !important;
-}
 
-.select2-container--bootstrap-5 .select2-selection__rendered {
-    font-size: 0.8rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* white-space: nowrap; */
-    padding-right: 40px !important;
-    color: inherit !important;
-}
+    /* Select2 dropdown styling */
+    .select2-dropdown {
+        background-color: var(--bs-body-bg) !important;
+        border-color: #444 !important;
+        color: var(--bs-body-color) !important;
+        max-width: 300px !important;
+    }
+    .select2-results__option {
+        color: var(--bs-body-color) !important;
+    }
+    .select2-results__option--highlighted {
+        background-color: var(--bs-primary) !important;
+    }
+    .select2-search__field {
+        background-color: var(--bs-body-bg) !important;
+        color: var(--bs-body-color) !important;
+        border-color: #444 !important;
+    }
 
-.select2-dropdown {
-    background-color: var(--bs-body-bg) !important;
-    border-color: #444 !important;
-    color: var(--bs-body-color) !important;
-}
-
-.select2-results__option {
-    color: var(--bs-body-color) !important;
-}
-
-.select2-results__option--highlighted {
-    background-color: var(--bs-primary) !important;
-}
-
-.select2-search__field {
-    background-color: var(--bs-body-bg) !important;
-    color: var(--bs-body-color) !important;
-    border-color: #444 !important;
-}
+    /* Prevent horizontal scroll */
+    .table-responsive {
+        overflow-x: hidden !important;
+    }
+    /* Fix body overflow from select2 dropdown */
+    body {
+        overflow-x: hidden !important;
+    }
 </style>
 @endpush
 
@@ -97,32 +91,55 @@
         <div class="card-header"><h5 class="mb-0">Maklumat Waran</h5></div>
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fs-6">No Waran</label>
-                    <input type="text" name="no_waran"
-                        class="form-control @error('no_waran') is-invalid @enderror"
-                        value="{{ old('no_waran', $waran->no_waran) }}">
-                    @error('no_waran')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fs-6">Jumlah Jawatan (JIK)</label>
-                    <input type="number" name="jik" id="jikInput"
-                        class="form-control @error('jik') is-invalid @enderror"
-                        value="{{ old('jik', $waran->jik) }}" min="1" max="100">
-                    @error('jik')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fs-6">Punca Kuasa</label>
-                    <input type="text" name="puncakuasa"
-                        class="form-control @error('puncakuasa') is-invalid @enderror"
-                        value="{{ old('puncakuasa', $waran->puncakuasa) }}">
-                    @error('puncakuasa')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fs-6">Catatan</label>
-                    <textarea name="catatan" class="form-control" rows="2">{{ old('catatan', $waran->catatan) }}</textarea>
-                </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">No Waran</label>
+        <input type="text" name="no_waran"
+            class="form-control @error('no_waran') is-invalid @enderror"
+            value="{{ old('no_waran', $waran->no_waran) }}">
+        @error('no_waran')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">Jumlah Jawatan (JIK)</label>
+        <input type="number" name="jik" id="jikInput"
+            class="form-control @error('jik') is-invalid @enderror"
+            value="{{ old('jik', $waran->jik) }}" min="1" max="100">
+        @error('jik')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">Punca Kuasa</label>
+        <input type="text" name="puncakuasa"
+            class="form-control @error('puncakuasa') is-invalid @enderror"
+            value="{{ old('puncakuasa', $waran->puncakuasa) }}">
+        @error('puncakuasa')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-6">
+        <label class="form-label fs-6">Catatan</label>
+        <textarea name="catatan" class="form-control" rows="2">{{ old('catatan', $waran->catatan) }}</textarea>
+    </div>
+    <div class="col-12">
+        <label class="form-label fs-6">Jenis Waran</label>
+        <div class="d-flex gap-4">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="jenis"
+                    id="jenisTambah" value="tambah"
+                    {{ old('jenis', $waran->jenis) == 'tambah' ? 'checked' : '' }}>
+                <label class="form-check-label" for="jenisTambah">
+                    <span class="fw-semibold">Tambah Jawatan</span><br>
+                    <small class="text-muted">Menambah jawatan baru.</small>
+                </label>
             </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="jenis"
+                    id="jenisTolak" value="tolak"
+                    {{ old('jenis', $waran->jenis) == 'tolak' ? 'checked' : '' }}>
+                <label class="form-check-label" for="jenisTolak">
+                    <span class="fw-semibold">Tolak Jawatan</span><br>
+                    <small class="text-muted">Mengurangkan jawatan sedia ada.</small>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 
@@ -133,7 +150,7 @@
             <span class="badge bg-primary" id="jawatanCount">{{ $waran->waranJawatan->count() }} Jawatan</span>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <div class="table-responsive" style="overflow-x: hidden;">
                 <table class="table table-bordered mb-0" style="table-layout: fixed;">
                     <thead class="table-light">
                         <tr>
