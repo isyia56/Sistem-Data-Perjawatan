@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use BackedEnum;
 use Filament\Pages\Page;
 use App\Models\Waran;
 use App\Models\Pegawai;
@@ -11,9 +12,8 @@ use App\Models\WaranJawatan;
 
 class Dashboard extends Page
 {
-    protected string $view = 'filament.pages.dashboard';
-
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-home';
+protected string $view = 'filament.pages.dashboard';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-home';
     protected static ?string $navigationLabel = 'Dashboard';
     protected static ?int $navigationSort = -2;
 
