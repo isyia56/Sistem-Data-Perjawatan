@@ -7,3 +7,51 @@
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+
+.fi-simple-layout {
+    background-color: #fff7ed !important;
+}
+
+.fi-simple-main {
+    background-color: #fef3e2 !important;
+    border: 2px solid #f97316 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 24px rgba(249, 115, 22, 0.1) !important;
+}
+
+.fi-fo-field-label,
+.fi-fo-field-label span,
+label {
+    color: #1a1a1a !important;
+}
+
+.fi-input,
+input[type="email"],
+input[type="password"] {
+    color: #1a1a1a !important;
+    background-color: #ffffff !important;
+}
+
+.fi-btn {
+    color: white !important;
+}
+
+.fi-simple-layout-heading {
+    color: #c2410c !important;
+}
+
+.fi-checkbox-label,
+.fi-fo-field-label,
+.fi-fo-field-label span,
+label {
+    color: #7c3a00 !important;
+}
+
+header.fi-simple-header,
+.fi-simple-header {
+    color: #c2410c !important;
+}
+
+.fi-simple-header * {
+    color: #c2410c !important;
+}

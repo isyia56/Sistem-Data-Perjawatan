@@ -31,6 +31,7 @@ class AppPanelProvider extends PanelProvider
             // ->homeUrl('/app/dashboard')
             ->brandName('e-SDaP')
             ->viteTheme('resources/css/filament/app/theme.css')
+            ->brandLogo(fn () => view('filament.brand'))
             ->login()
             ->colors([
                 'primary' => Color::Amber,
