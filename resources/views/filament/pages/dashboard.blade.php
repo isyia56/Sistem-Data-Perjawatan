@@ -1,22 +1,42 @@
 <x-filament-panels::page>
 
+    {{-- Alert Tidak Lengkap --}}
+    @if($totalTidakLengkap > 0)
+    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:36px; height:36px; background:#fee2e2; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+            </div>
+            <div>
+                <p style="font-weight:600; color:#dc2626; margin:0; font-size:14px;">Amaran — Data Pegawai Tidak Lengkap</p>
+                <p style="color:#6b7280; margin:0; font-size:13px;">Terdapat <strong style="color:#dc2626;">{{ $totalTidakLengkap }}</strong> pegawai dengan status data tidak lengkap</p>
+            </div>
+        </div>
+        <a href="{{ url('/app/pegawais') }}" style="background:#dc2626; color:white; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500; text-decoration:none;">
+            Lihat Pegawai
+        </a>
+    </div>
+    @endif
+
     {{-- Stats Cards --}}
     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:16px;">
-        <div style="background:#eff6ff; border-radius:12px; padding:20px;">
+        <div style="background:#eff6ff; border-radius:12px; padding:20px; border:1px solid #bfdbfe;">
             <p style="font-size:13px; color:#3b82f6; font-weight:500; margin:0 0 4px;">Jumlah Waran</p>
             <p style="font-size:28px; font-weight:700; color:#1d4ed8; margin:0;">{{ $totalWaran }}</p>
         </div>
-        <div style="background:#f0fdf4; border-radius:12px; padding:20px;">
-            <p style="font-size:13px; color:#16a34a; font-weight:500; margin:0 0 4px;">Waran Lebih</p>
-            <p style="font-size:28px; font-weight:700; color:#15803d; margin:0;">{{ $totalLebih }}</p>
+        <div style="background:#eff6ff; border-radius:12px; padding:20px; border:1px solid #bfdbfe;">
+            <p style="font-size:13px; color:#3b82f6; font-weight:500; margin:0 0 4px;">Waran Lebih</p>
+            <p style="font-size:28px; font-weight:700; color:#1d4ed8; margin:0;">{{ $totalLebih }}</p>
         </div>
-        <div style="background:#fef2f2; border-radius:12px; padding:20px;">
+        <div style="background:#fef2f2; border-radius:12px; padding:20px; border:1px solid #fecaca;">
             <p style="font-size:13px; color:#dc2626; font-weight:500; margin:0 0 4px;">Waran Kurang</p>
             <p style="font-size:28px; font-weight:700; color:#b91c1c; margin:0;">{{ $totalKurang }}</p>
         </div>
-        <div style="background:#f0f9ff; border-radius:12px; padding:20px;">
-            <p style="font-size:13px; color:#0284c7; font-weight:500; margin:0 0 4px;">Waran Seimbang</p>
-            <p style="font-size:28px; font-weight:700; color:#0369a1; margin:0;">{{ $totalSeimbang }}</p>
+        <div style="background:#f0fdf4; border-radius:12px; padding:20px; border:1px solid #bbf7d0;">
+            <p style="font-size:13px; color:#16a34a; font-weight:500; margin:0 0 4px;">Waran Seimbang</p>
+            <p style="font-size:28px; font-weight:700; color:#15803d; margin:0;">{{ $totalSeimbang }}</p>
         </div>
     </div>
 
@@ -35,7 +55,7 @@
                 </div>
                 <div style="display:flex; gap:16px;">
                     <div style="display:flex; align-items:center; gap:6px;">
-                        <div style="width:12px; height:12px; border-radius:50%; background:#16a34a;"></div>
+                        <div style="width:12px; height:12px; border-radius:50%; background:#3b82f6;"></div>
                         <span style="font-size:12px;">Lebih ({{ $totalLebih }})</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
@@ -43,7 +63,7 @@
                         <span style="font-size:12px;">Kurang ({{ $totalKurang }})</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
-                        <div style="width:12px; height:12px; border-radius:50%; background:#0284c7;"></div>
+                        <div style="width:12px; height:12px; border-radius:50%; background:#16a34a;"></div>
                         <span style="font-size:12px;">Seimbang ({{ $totalSeimbang }})</span>
                     </div>
                 </div>
@@ -80,7 +100,7 @@
                         <td style="padding:10px 0; color:#6366f1; font-weight:600;">{{ $waran->no_waran }}</td>
                         <td style="padding:10px 0;">
                             @if($waran->jenis === 'tambah')
-                                <x-filament::badge color="success">Tambah</x-filament::badge>
+                                <x-filament::badge color="info">Tambah</x-filament::badge>
                             @else
                                 <x-filament::badge color="warning">Tolak</x-filament::badge>
                             @endif
@@ -90,11 +110,11 @@
                         <td style="padding:10px 0; text-align:center; font-weight:600; color:{{ $waran->kosong_count < 0 ? '#dc2626' : '#d97706' }};">{{ $waran->kosong_count }}</td>
                         <td style="padding:10px 0;">
                             @if($status === 'Lebih')
-                                <x-filament::badge color="success">{{ $status }}</x-filament::badge>
+                                <x-filament::badge color="info">{{ $status }}</x-filament::badge>
                             @elseif($status === 'Kurang')
                                 <x-filament::badge color="danger">{{ $status }}</x-filament::badge>
                             @else
-                                <x-filament::badge color="info">{{ $status }}</x-filament::badge>
+                                <x-filament::badge color="success">{{ $status }}</x-filament::badge>
                             @endif
                         </td>
                     </tr>
@@ -120,6 +140,10 @@
                     <span style="font-size:13px; color:#6b7280;">Waran Aktif</span>
                     <span style="font-size:20px; font-weight:700; color:#6366f1;">{{ $totalWaran }}</span>
                 </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#fef2f2; border-radius:8px;">
+                    <span style="font-size:13px; color:#dc2626;">Pegawai (Tidak Lengkap)</span>
+                    <span style="font-size:20px; font-weight:700; color:#dc2626;">{{ $totalTidakLengkap }}</span>
+                </div>
             </div>
         </x-filament::section>
 
@@ -136,7 +160,7 @@
                     labels: ['Lebih', 'Kurang', 'Seimbang'],
                     datasets: [{
                         data: [{{ $totalLebih }}, {{ $totalKurang }}, {{ $totalSeimbang }}],
-                        backgroundColor: ['#16a34a', '#dc2626', '#0284c7'],
+                        backgroundColor: ['#3b82f6', '#dc2626', '#16a34a'],
                         borderWidth: 0,
                         hoverOffset: 4
                     }]
