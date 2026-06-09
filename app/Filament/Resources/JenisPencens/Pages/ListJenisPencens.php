@@ -10,14 +10,21 @@ class ListJenisPencens extends ListRecords
 {
     protected static string $resource = JenisPencenResource::class;
 
-    protected function getHeaderActions(): array
+     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
+                ->label('Tambah Jenis Penamatan Perkhidmatan')
                 ->modal()
-                ->modalSubmitActionLabel('Tambah')
-                ->modalCancelActionLabel('Batal')
                 ->createAnother(false)
+                ->modalHeading('Tambah Jenis Penamatan Perkhidmatan')
+                ->modalSubmitActionLabel('Tambah')
+                ->modalCancelActionLabel('Batal'),
         ];
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Senarai';
     }
 }

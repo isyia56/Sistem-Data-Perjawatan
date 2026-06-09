@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\JenisPencens\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -19,7 +20,7 @@ class JenisPencensTable
                 ->label('Bil')
                 ->rowIndex(),
                 TextColumn::make('jenis')
-                ->label('Jenis Pencen')
+                ->label('Jenis Penamatan Perkhidmatan')
                 ->sortable()
                 ->searchable(),
                 TextColumn::make('kategori')
@@ -28,9 +29,22 @@ class JenisPencensTable
                 //
             ])
             ->recordActions([
-                EditAction::make()
-                ->modal(),
-                DeleteAction::make(),
+                 ActionGroup::make([
+                    EditAction::make()
+                        // ->label('Kemaskini')
+                        ->modal()
+                        // ->modalHeading('Kemaskini Rekod')
+                        ->modalSubmitActionLabel('Simpan')
+                        ->modalCancelActionLabel('Batal'),
+
+                    DeleteAction::make()
+                        ->label('Padam')
+                        ->modalHeading(fn($record) => "Padam {$record->jenis}")
+                        ->modalDescription('Adakah anda pasti mahu memadam rekod ini? Tindakan ini tidak boleh dibatalkan.')
+                        ->modalSubmitActionLabel('Ya, Padam')
+                        ->modalCancelActionLabel('Batal')
+
+                ])
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
