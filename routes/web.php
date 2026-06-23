@@ -20,6 +20,8 @@ use App\Http\Controllers\DunController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\JawatanGredController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LetakJawatanController;
+use App\Http\Controllers\PencenController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -67,6 +69,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('pegawai', PegawaiController::class);
     Route::resource('pegawai-kontrak', App\Http\Controllers\PegawaiKontrakController::class);
     Route::resource('waran', WaranController::class);
+    Route::get('letak-jawatan/create-filament-demo', function () {
+        return view('letak-jawatan.create-filament-demo');
+    })->name('letak-jawatan.create-filament-demo');
+    Route::resource('letak-jawatan', LetakJawatanController::class);
 
     // Organisasi
     Route::resource('ptj', PtjController::class);
@@ -89,5 +95,7 @@ Route::middleware('auth')->group(function () {
     // Sistem
     Route::resource('pengguna', PenggunaController::class);
     Route::resource('jawatan-gred', JawatanGredController::class);
+    Route::resource('pencen', PencenController::class);
+    Route::get('pencen-pegawai-info/{id}', [PencenController::class, 'getPegawaiInfo'])->name('pencen.pegawai-info');
 
 });

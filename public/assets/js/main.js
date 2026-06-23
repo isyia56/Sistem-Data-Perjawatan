@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
     item.addEventListener('click', event => {
       event.preventDefault();
       window.Helpers.toggleCollapsed();
+      if (!Helpers.isSmallScreen()) {
+        window.localStorage.setItem('layoutCollapsed', Helpers.isCollapsed());
+      }
     });
   });
 
@@ -120,8 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // If current layout is vertical and current window screen is > small
 
-  // Auto update menu collapsed/expanded based on the themeConfig
-      window.Helpers.setCollapsed(false, false);
+  // Auto update menu collapsed/expanded based on the saved preference
+  window.Helpers.setCollapsed(window.localStorage.getItem('layoutCollapsed') === 'true', false);
 })();
 // Utils
 function isMacOS() {

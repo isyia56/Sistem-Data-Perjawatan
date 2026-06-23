@@ -68,7 +68,7 @@
 {{-- Program Filter Tabs --}}
 <div class="card mb-3">
     <div class="card-body py-2">
-        <div class="d-flex gap-2 flex-wrap">
+        <div class="d-flex gap-2 flex-wrap justify-content-center">
             <a href="{{ route('waran.index', array_merge(request()->except('program_id'), [])) }}"
                class="btn btn-sm {{ !request('program_id') ? 'btn-primary' : 'btn-outline-secondary' }}">
                 Semua
