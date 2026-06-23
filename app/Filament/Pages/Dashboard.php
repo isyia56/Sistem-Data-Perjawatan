@@ -13,6 +13,7 @@ use App\Models\WaranJawatan;
 
 class Dashboard extends Page
 {
+<<<<<<< HEAD
     public function getView(): string
     {
         return 'filament.pages.dashboard';
@@ -20,6 +21,11 @@ class Dashboard extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
     protected static ?string $navigationLabel = 'Dashboard';
+=======
+protected string $view = 'filament.pages.dashboard';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-home';
+    // protected static ?string $navigationLabel = 'Dashboard';
+>>>>>>> upstream/main
     protected static ?int $navigationSort = -2;
 
     public function getViewData(): array

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\LetakJawatanExportController;
+use App\Http\Controllers\UserExportController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +29,13 @@ use App\Http\Controllers\PencenController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Export routes (Maisarah's)
+Route::get('/export-users', [UserExportController::class, 'export'])
+    ->name('export.users');
+
+Route::get('/export-letak-jawatan', [LetakJawatanExportController::class, 'export'])
+    ->name('export.letakJawatan');
 
 // Guest routes
 Route::middleware('guest')->group(function () {
@@ -69,9 +78,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('pegawai', PegawaiController::class);
     Route::resource('pegawai-kontrak', App\Http\Controllers\PegawaiKontrakController::class);
     Route::resource('waran', WaranController::class);
-    Route::get('letak-jawatan/create-filament-demo', function () {
-        return view('letak-jawatan.create-filament-demo');
-    })->name('letak-jawatan.create-filament-demo');
     Route::resource('letak-jawatan', LetakJawatanController::class);
 
     // Organisasi
