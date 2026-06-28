@@ -1,20 +1,12 @@
 @extends('layouts.app')
 @section('title', 'Letak Jawatan')
 
-@push('styles')
-    @filamentStyles
-    <link rel="stylesheet" href="{{ asset('css/filament/filament/app.css') }}">
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0">Letak Jawatan</h4>
-    <div class="d-flex gap-2">
-        @livewire('letak-jawatan-export-button')
-        <a href="{{ route('letak-jawatan.create') }}" class="btn btn-primary">
-            <i class="bx bx-plus me-1"></i> Tambah
-        </a>
-    </div>
+    <a href="{{ route('letak-jawatan.create') }}" class="btn btn-primary">
+        <i class="bx bx-plus me-1"></i> Tambah
+    </a>
 </div>
 
 {{-- Search --}}
@@ -109,7 +101,6 @@ function debounceSearch(input) {
     }, 500);
 }
 </script>
-@filamentScripts(withCore: true)
 @endpush
 
 

@@ -258,7 +258,7 @@
                 </li>
 
                 <!-- Pengurusan -->
-                <li class="menu-item {{ request()->routeIs('pegawai*') || request()->routeIs('pegawai-kontrak*') || request()->routeIs('letak-jawatan*')||request()->routeIs('pencen*') ? 'active open' : '' }}">
+                <li class="menu-item {{ request()->routeIs('pegawai*') || request()->routeIs('pegawai-kontrak*') || request()->routeIs('letak-jawatan*') || request()->routeIs('letak-jawatan-v2*') || request()->routeIs('pencen*') ? 'active open' : '' }}">
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
                         <i class="menu-icon tf-icons bx bx-briefcase"></i>
                         <div class="text-truncate">Pengurusan</div>
@@ -269,9 +269,14 @@
                                 <div class="text-truncate">Pegawai</div>
                             </a>
                         </li>
-                        <li class="menu-item {{ request()->routeIs('letak-jawatan*') ? 'active' : '' }}">
+                        <li class="menu-item {{ request()->routeIs('letak-jawatan.*') || request()->routeIs('letak-jawatan') ? 'active' : '' }}">
                             <a href="{{ route('letak-jawatan.index') }}" class="menu-link">
                                 <div class="text-truncate">Letak Jawatan</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->routeIs('letak-jawatan-v2*') ? 'active' : '' }}">
+                            <a href="{{ route('letak-jawatan-v2.create') }}" class="menu-link">
+                                <div class="text-truncate">Letak Jawatan (V2)</div>
                             </a>
                         </li>
                         <li class="menu-item {{ request()->routeIs('pencen*') ? 'active' : '' }}">
@@ -280,7 +285,7 @@
                             </a>
                         </li>
                     </ul>
-</li>
+                </li>
 
                 <!-- Kawalan -->
                 <li class="menu-item {{ request()->routeIs('program*') || request()->routeIs('ptj*') || request()->routeIs('bahagian*') || request()->routeIs('unit*') || request()->routeIs('subunit*') || request()->routeIs('gred*') || request()->routeIs('jawatan*') || request()->routeIs('opsyen-pencen*') || request()->routeIs('parlimen*')  ? 'active open' : '' }}">

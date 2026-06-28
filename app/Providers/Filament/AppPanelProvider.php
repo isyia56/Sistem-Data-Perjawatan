@@ -35,8 +35,12 @@ class AppPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/app/theme.css')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
-                'secondary' => Color::Violet,
+                'primary' => Color::hex('#696cff'),
+                'secondary' => Color::hex('#8592a3'),
+                'success' => Color::hex('#71dd37'),
+                'info' => Color::hex('#03c3ec'),
+                'warning' => Color::hex('#ffab00'),
+                'danger' => Color::hex('#ff3e1d'),
                 'tertiary' => Color::Lime,
                 'quartenary' => Color::Slate,
                 'neutral' => Color::Neutral,

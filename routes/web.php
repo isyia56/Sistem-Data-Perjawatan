@@ -78,7 +78,18 @@ Route::middleware('auth')->group(function () {
     Route::resource('pegawai', PegawaiController::class);
     Route::resource('pegawai-kontrak', App\Http\Controllers\PegawaiKontrakController::class);
     Route::resource('waran', WaranController::class);
+
+    Route::get('letak-jawatan/create-filament-demo', function () {
+        return view('letak-jawatan.create-filament-demo');
+    })->name('letak-jawatan.create-filament-demo');
     Route::resource('letak-jawatan', LetakJawatanController::class);
+
+    Route::get('letak-jawatan-v2/create', function () {
+        return view('letak-jawatan.create-filament-demo');
+    })->name('letak-jawatan-v2.create');
+    Route::resource('letak-jawatan-v2', LetakJawatanController::class)
+        ->except(['create'])
+        ->names('letak-jawatan-v2');
 
     // Organisasi
     Route::resource('ptj', PtjController::class);
