@@ -33,18 +33,23 @@ class Pegawai extends Model
         'ada_subunit'
     ];
 
-    protected static function booted(){
-        static::addGlobalScope('ptj_access', function (Builder $query) {
-            $user = auth()->user();
+    protected static function booted()
+{
+    static::addGlobalScope('ptj_access', function (Builder $query) {
+        $user = auth()->user();
 
-             if (in_array($user->role, [1, 2])) {
+        // No authenticated user (Artisan, Queue, etc.)
+        if (!$user) {
+            return;
+        }
+
+        if (in_array($user->role, [1, 2])) {
             return;
         }
 
         $query->where('ptj_id', $user->ptj_id);
-        });
-    }
-
+    });
+}
     public function ptj()
     {
         return $this->belongsTo(Ptj::class, 'ptj_id');
@@ -72,7 +77,7 @@ class Pegawai extends Model
 
     public function opsyenPencen()
     {
-        return $this->belongsTo(OpsyenPencen::class, 'bahagian_id');
+        return $this->belongsTo(OpsyenPencen::class, 'opsyen_pencen_id');
     }
 
     public function pegawaiKontrak()

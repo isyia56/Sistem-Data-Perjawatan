@@ -2,16 +2,22 @@
 
 namespace App\Filament\Resources\Pegawais\Tables;
 
+use App\Filament\Resources\Pegawais\PegawaiResource;
 use App\Models\Pegawai;
+use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ActionGroup;
 
+use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Support\View\Components\BadgeComponent;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
 use Pest\Arch\GroupArchExpectation;
 
 class PegawaisTable
@@ -19,6 +25,8 @@ class PegawaisTable
     public static function configure(Table $table): Table
     {
         return $table
+            // ->recordAction(null)
+            ->recordUrl(null)
             ->columns([
                 TextColumn::make('no')
                     ->label('Bil')
@@ -224,6 +232,18 @@ class PegawaisTable
             ])
             ->recordActions([
                 ActionGroup::make([
+                    ViewAction::make()
+                        ->label('Papar')
+                        ->modal()
+                        ->modalHeading(fn($record) => $record->nama)
+                        ->extraModalFooterActions([
+                            Action::make('edit')
+                                ->label('Edit')
+                                ->url(fn($record) => PegawaiResource::getUrl('edit', [
+                                    'record' => $record,
+                                ])),
+                        ]),
+
                     EditAction::make(),
                     DeleteAction::make()
                         ->label('Padam')
@@ -231,6 +251,23 @@ class PegawaisTable
                         ->modalDescription('Adakah anda pasti mahu memadam rekod ini? Tindakan ini tidak boleh dibatalkan.')
                         ->modalSubmitActionLabel('Ya, Padam')
                         ->modalCancelActionLabel('Batal')
+                        ->after(function ($record) {
+
+                            Log::info('Pegawai Deleted', [
+                                'pegawai_id' => $record->id,
+                                'user_id' => auth()->id(),
+                            ]);
+
+                            $creator = auth()->user();
+
+                            $recipients = User::whereIn('role', [1, 2])->get();
+
+                            Notification::make()
+                                ->title('Pegawai Telah Dipadam')
+                                ->body("Pegawai {$record->nama} telah dipadam oleh {$creator->name}")
+                                ->danger()
+                                ->sendToDatabase($recipients);
+                        }),
                 ])
                 // EditAction::make(),
             ])

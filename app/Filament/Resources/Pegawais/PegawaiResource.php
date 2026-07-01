@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Pegawais;
 use App\Filament\Resources\Pegawais\Pages\CreatePegawai;
 use App\Filament\Resources\Pegawais\Pages\EditPegawai;
 use App\Filament\Resources\Pegawais\Pages\ListPegawais;
+use App\Filament\Resources\Pegawais\Pages\ViewPegawai;
 use App\Filament\Resources\Pegawais\Schemas\PegawaiForm;
+use App\Filament\Resources\Pegawais\Schemas\PegawaiInfolist;
 use App\Filament\Resources\Pegawais\Tables\PegawaisTable;
 use App\Models\Pegawai;
 use BackedEnum;
@@ -37,8 +39,8 @@ class PegawaiResource extends Resource
             ::where(function ($q) {
                 $q->whereNull('ptj_id')
                     ->orWhereNull('bahagian_id')
-                    ->orWhereNull('unit_id')
-                    ->orWhereNull('subunit_id');
+                    ->orWhere('ada_unit', 0)
+                    ->orWhere('ada_subunit', 0);
             })
             ->orWhere(function ($q) {
                 $q->where('is_jtw', 0)
@@ -55,8 +57,8 @@ class PegawaiResource extends Resource
             ::where(function ($q) {
                 $q->whereNull('ptj_id')
                     ->orWhereNull('bahagian_id')
-                    ->orWhereNull('unit_id')
-                    ->orWhereNull('subunit_id');
+                    ->orWhere('ada_unit', 0)
+                    ->orWhere('ada_subunit', 0);
             })
             ->orWhere(function ($q) {
                 $q->where('is_jtw', 0)
@@ -71,6 +73,10 @@ class PegawaiResource extends Resource
         return PegawaiForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return PegawaiInfolist::configure($schema);
+    }
     public static function table(Table $table): Table
     {
         return PegawaisTable::configure($table);
@@ -88,6 +94,7 @@ class PegawaiResource extends Resource
         return [
             'index' => ListPegawais::route('/'),
             'create' => CreatePegawai::route('/create'),
+            'view' => ViewPegawai::route('/{record}'),
             'edit' => EditPegawai::route('/{record}/edit'),
         ];
     }
