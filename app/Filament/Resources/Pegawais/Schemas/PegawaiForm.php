@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pegawais\Schemas;
 
 use App\Models\Aktiviti;
+use App\Models\Bahagian;
 use App\Models\Jawatan;
 use App\Models\Jawatan_Gred;
 use App\Models\OpsyenPencen;
@@ -25,6 +26,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class PegawaiForm
 {
@@ -41,7 +43,7 @@ class PegawaiForm
                                     ->label('Nama')
                                     ->columnSpanFull()
                                     ->required()
-                                    ->dehydrateStateUsing(fn(string $state): string => strtoupper($state))
+                                    ->dehydrateStateUsing(fn (string $state): string => strtoupper($state))
                                     ->extraInputAttributes(['style' => 'text-transform:uppercase']),
 
                                 TextInput::make('nokp')
@@ -55,8 +57,9 @@ class PegawaiForm
                                     // ->unique(ignoreRecord: true, column: 'nokp')
                                     ->afterStateUpdated(function ($state, callable $set) {
 
-                                        if (!$state || strlen($state) < 6)
+                                        if (! $state || strlen($state) < 6) {
                                             return;
+                                        }
 
                                         // remove dash if user types it
                                         $noKp = str_replace('-', '', $state);
@@ -66,7 +69,7 @@ class PegawaiForm
                                         $day = substr($noKp, 4, 2);
 
                                         // determine century
-                                        $fullYear = $year > date('y') ? '19' . $year : '20' . $year;
+                                        $fullYear = $year > date('y') ? '19'.$year : '20'.$year;
 
                                         try {
                                             $dob = Carbon::createFromFormat('Y-m-d', "$fullYear-$month-$day");
@@ -83,7 +86,7 @@ class PegawaiForm
                                     ->required()
                                     ->options([
                                         'Lelaki' => 'Lelaki',
-                                        'Perempuan' => 'Perempuan'
+                                        'Perempuan' => 'Perempuan',
                                     ]),
                                 Select::make('jawatan_id')
                                     ->label('Jawatan')
@@ -102,13 +105,13 @@ class PegawaiForm
 
                                         $jawatanGredId = $get('jawatan_gred_id');
 
-                                        if (!$jawatanGredId) {
+                                        if (! $jawatanGredId) {
                                             return;
                                         }
 
                                         $jawatanGred = Jawatan_Gred::find($jawatanGredId);
 
-                                        if (!$jawatanGred) {
+                                        if (! $jawatanGred) {
                                             return;
                                         }
 
@@ -137,18 +140,18 @@ class PegawaiForm
                                     ->preload()
                                     ->dehydrated(false)
                                     // ->multiple()
-                                    ->disabled(fn(Get $get) => blank($get('jawatan_id')))
+                                    ->disabled(fn (Get $get) => blank($get('jawatan_id')))
                                     ->afterStateHydrated(function ($state, Get $get, Set $set) {
 
                                         $jawatanGredId = $get('jawatan_gred_id');
 
-                                        if (!$jawatanGredId) {
+                                        if (! $jawatanGredId) {
                                             return;
                                         }
 
                                         $jawatanGred = Jawatan_Gred::find($jawatanGredId);
 
-                                        if (!$jawatanGred) {
+                                        if (! $jawatanGred) {
                                             return;
                                         }
 
@@ -178,7 +181,7 @@ class PegawaiForm
                                     ->relationship(
                                         'ptj',
                                         'nama_ptj',
-                                        modifyQueryUsing: function (\Illuminate\Database\Eloquent\Builder $query) {
+                                        modifyQueryUsing: function (Builder $query) {
                                             $user = auth()->user();
 
                                             if ($user->role == 3) {
@@ -192,20 +195,21 @@ class PegawaiForm
                                     ->columnSpanFull()
                                     ->reactive()
                                     ->visible(function (?Pegawai $record): bool {
-                                        if (!$record) {
+                                        if (! $record) {
                                             // Create page
                                             return true;
                                         }
 
                                         return auth()->user()->ptj_id === $record->ptj_id || auth()->user()->role == 1 || auth()->user()->role == 2;
-                                    })->afterStateUpdated(fn($state, callable $set) => $set('bahagian_id', null)),
+                                    })
+                                    ->afterStateUpdated(fn ($state, callable $set) => $set('bahagian_id', null)),
 
                                 TextEntry::make('ptj')
                                     ->label('PTJ')
                                     ->getStateUsing(function ($record) {
                                         return $record->ptj?->nama_ptj ?? '-';
                                     })
-                                    ->visible(fn(Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id'))
+                                    ->visible(fn (Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id'))
                                     ->columnSpanFull(),
 
                                 Select::make('bahagian_id')
@@ -213,18 +217,18 @@ class PegawaiForm
                                     ->options(function (Get $get) {
                                         $ptjId = $get('ptj_id');
 
-                                        if (!$ptjId) {
+                                        if (! $ptjId) {
                                             return [];
                                         }
 
-                                        return \App\Models\Bahagian::where('ptj_id', $ptjId)
+                                        return Bahagian::where('ptj_id', $ptjId)
                                             ->pluck('nama_bahagian', 'id');
                                     })
                                     ->searchable()
                                     ->required()
                                     ->preload()
                                     ->visible(function (?Pegawai $record): bool {
-                                        if (!$record) {
+                                        if (! $record) {
                                             // Create page
                                             return true;
                                         }
@@ -238,7 +242,7 @@ class PegawaiForm
                                     ->getStateUsing(function ($record) {
                                         return $record->bahagian?->nama_bahagian ?? '-';
                                     })
-                                    ->visible(fn(Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id'))
+                                    ->visible(fn (Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id'))
                                     ->columnSpanFull(),
 
                                 Grid::make(4)
@@ -248,7 +252,7 @@ class PegawaiForm
                                             ->options(function (Get $get) {
                                                 $bahagianId = $get('bahagian_id');
 
-                                                if (!$bahagianId) {
+                                                if (! $bahagianId) {
                                                     return [];
                                                 }
 
@@ -257,19 +261,19 @@ class PegawaiForm
                                             })
                                             ->searchable()
                                             ->preload()
-                                            ->disabled(fn(Get $get) => $get('ada_unit'))
-                                            ->dehydrated(fn(Get $get) => !$get('ada_unit'))
+                                            ->disabled(fn (Get $get) => $get('ada_unit'))
+                                            ->dehydrated(fn (Get $get) => ! $get('ada_unit'))
                                             ->nullable()
                                             ->columnSpan(4),
 
                                         Checkbox::make('ada_unit')
                                             ->label('Tiada Unit')
                                             ->live()
-                                            ->columnSpan(1)
+                                            ->columnSpan(1),
 
                                     ])
                                     ->visible(function (?Pegawai $record): bool {
-                                        if (!$record) {
+                                        if (! $record) {
                                             // Create page
                                             return true;
                                         }
@@ -277,12 +281,12 @@ class PegawaiForm
                                         return auth()->user()->ptj_id === $record->ptj_id || auth()->user()->role == 1 || auth()->user()->role == 2;
                                     }),
 
-                                Textentry::make('unit')
+                                TextEntry::make('unit')
                                     ->label('Unit')
                                     ->getStateUsing(function ($record) {
                                         return $record->unit?->namaUnit ?? '';
                                     })
-                                    ->visible(fn(Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id')),
+                                    ->visible(fn (Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id')),
 
                                 Grid::make(4)
                                     ->schema([
@@ -291,7 +295,7 @@ class PegawaiForm
                                             ->options(function (Get $get) {
                                                 $unitId = $get('unit_id');
 
-                                                if (!$unitId) {
+                                                if (! $unitId) {
                                                     return [];
                                                 }
 
@@ -300,18 +304,18 @@ class PegawaiForm
                                             })
                                             ->searchable()
                                             ->preload()
-                                            ->disabled(fn(Get $get) => $get('ada_subunit'))
-                                            ->dehydrated(fn(Get $get) => !$get('ada_subunit'))
+                                            ->disabled(fn (Get $get) => $get('ada_subunit'))
+                                            ->dehydrated(fn (Get $get) => ! $get('ada_subunit'))
                                             ->nullable()
                                             ->columnSpan(4),
 
                                         Checkbox::make('ada_subunit')
                                             ->label('Tiada Subunit')
                                             ->live()
-                                            ->columnSpan(1)
+                                            ->columnSpan(1),
                                     ])
                                     ->visible(function (?Pegawai $record): bool {
-                                        if (!$record) {
+                                        if (! $record) {
                                             // Create page
                                             return true;
                                         }
@@ -319,12 +323,12 @@ class PegawaiForm
                                         return auth()->user()->ptj_id === $record->ptj_id || auth()->user()->role == 1 || auth()->user()->role == 2;
                                     }),
 
-                                Textentry::make('subunit')
+                                TextEntry::make('subunit')
                                     ->label('Subunit')
                                     ->getStateUsing(function ($record) {
                                         return $record->subunit?->namaSubunit ?? '';
                                     })
-                                    ->visible(fn(Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id'))
+                                    ->visible(fn (Get $get) => auth()->user()->role == 3 && auth()->user()->ptj_id !== $get('ptj_id')),
 
                             ]),
 
@@ -359,7 +363,6 @@ class PegawaiForm
                                             $set('is_kontrak_isi_tetap', false);
                                         }
                                     }),
-
 
                                 Checkbox::make('is_kupj')
                                     ->label('KHAS UNTUK PENYANDANG JAWATAN (KUPJ)')
@@ -408,7 +411,7 @@ class PegawaiForm
                                 Section::make('Maklumat Lantikan')
                                     ->columns(2)
                                     ->columnSpanFull()
-                                    ->visible(fn(Get $get) => $get('is_tetap') || $get('is_kontrak_interim'))
+                                    ->visible(fn (Get $get) => $get('is_tetap') || $get('is_kontrak_interim'))
                                     ->schema([
                                         DatePicker::make('tarikh_lantikan')
                                             ->label('Tarikh Lantikan')
@@ -447,8 +450,8 @@ class PegawaiForm
 
                                                 // determine century
                                                 $fullYear = $year > date('y')
-                                                    ? '19' . $year
-                                                    : '20' . $year;
+                                                    ? '19'.$year
+                                                    : '20'.$year;
 
                                                 try {
 
@@ -459,7 +462,7 @@ class PegawaiForm
 
                                                     $opsyen = OpsyenPencen::find($state);
 
-                                                    if (!$opsyen) {
+                                                    if (! $opsyen) {
                                                         return;
                                                     }
 
@@ -488,7 +491,7 @@ class PegawaiForm
                                 Section::make('Maklumat Lantikan Kontrak')
                                     ->columns(2)
                                     ->columnSpanFull()
-                                    ->visible(fn(Get $get) => $get('is_kontrak') || $get('is_kontrak_isi_tetap'))
+                                    ->visible(fn (Get $get) => $get('is_kontrak') || $get('is_kontrak_isi_tetap'))
                                     ->schema([
                                         DatePicker::make('tarikh_lantikan1')
                                             ->label('Tarikh Lantikan 1')
@@ -531,26 +534,55 @@ class PegawaiForm
                                             ->native(false)
                                             ->displayFormat('d F Y'),
 
-                                    ])
+                                    ]),
                             ]),
 
                         Tab::make('Penempatan')
                             ->schema([
+                                Grid::make(2)
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        DatePicker::make('tarikh_sandang')
+                                            ->label('Tarikh Sandang')
+                                            ->native(false)
+                                            ->displayFormat('d F Y')
+                                            ->maxDate(Carbon::now()->endOfYear())
+                                            ->live(),
+
+                                        TextEntry::make('tahun_khidmat_penempatan_semasa')
+                                            ->label('Tahun Khidmat Penempatan Semasa')
+                                            ->getStateUsing(function ($record, Get $get) {
+                                                $tarikhSandang = $get('tarikh_sandang') ?: $record?->tarikh_sandang;
+
+                                                if (blank($tarikhSandang)) {
+                                                    return '-';
+                                                }
+
+                                                try {
+                                                    $sandang = Carbon::parse($tarikhSandang);
+                                                } catch (\Exception $e) {
+                                                    return '-';
+                                                }
+
+                                                return Carbon::now()->year - $sandang->year;
+                                            }),
+                                    ]),
+
                                 TextEntry::make('no_waran')
                                     ->label('No Waran')
                                     ->getStateUsing(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return null;
                                         }
 
                                         return $record->waranJawatan?->waran?->no_waran;
                                     })
-                                    ->visible(fn(Get $get): bool => !$get('is_kontrak')),
+                                    ->visible(fn (Get $get): bool => ! $get('is_kontrak')),
 
                                 TextEntry::make('butiran')
                                     ->label('Butiran')
                                     ->getStateUsing(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return null;
                                         }
                                         $waranJawatan = $record->waranJawatan;
@@ -558,13 +590,13 @@ class PegawaiForm
 
                                         return $butiran;
                                     })
-                                    ->visible(fn(Get $get): bool => !$get('is_kontrak')),
+                                    ->visible(fn (Get $get): bool => ! $get('is_kontrak')),
                                 TextEntry::make('ptj')
                                     ->label('PTJ')
                                     ->getStateUsing(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return null;
-                                        } elseif (!$record->is_kontrak) {
+                                        } elseif (! $record->is_kontrak) {
                                             $waranJawatan = $record->waranJawatan;
                                             $ptj = $waranJawatan->ptj?->nama_ptj ?? '';
                                         } else {
@@ -579,9 +611,9 @@ class PegawaiForm
                                 TextEntry::make('bahagian')
                                     ->label('Bahagian')
                                     ->getStateUsing(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return null;
-                                        } elseif (!$record->is_kontrak) {
+                                        } elseif (! $record->is_kontrak) {
                                             $waranJawatan = $record->waranJawatan;
                                             $bahagian = $waranJawatan->bahagian?->nama_bahagian ?? '';
                                         } else {
@@ -592,12 +624,12 @@ class PegawaiForm
                                     })
                                     ->columnSpanFull(),
 
-                                Textentry::make('unit')
+                                TextEntry::make('unit')
                                     ->label('Unit')
                                     ->getStateUsing(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return null;
-                                        } elseif (!$record->is_kontrak) {
+                                        } elseif (! $record->is_kontrak) {
                                             $waranJawatan = $record->waranJawatan;
                                             $unit = $waranJawatan->unit?->namaUnit ?? '';
                                         } else {
@@ -606,14 +638,14 @@ class PegawaiForm
 
                                         return $unit;
                                     })
-                                    ->visible(fn(Get $get) => auth()->user()->role == 3),
+                                    ->visible(fn (Get $get) => auth()->user()->role == 3),
 
-                                Textentry::make('subunit')
+                                TextEntry::make('subunit')
                                     ->label('Subunit')
                                     ->getStateUsing(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return null;
-                                        } elseif (!$record->is_kontrak) {
+                                        } elseif (! $record->is_kontrak) {
                                             $waranJawatan = $record->waranJawatan;
                                             $subunit = $waranJawatan->subunit?->nama_subunit ?? '';
                                         } else {
@@ -622,7 +654,7 @@ class PegawaiForm
 
                                         return $subunit;
                                     })
-                                    ->visible(fn(Get $get) => auth()->user()->role == 3),
+                                    ->visible(fn (Get $get) => auth()->user()->role == 3),
                                 Group::make()
                                     ->columns(2)
                                     ->columnSpanFull()
@@ -634,35 +666,32 @@ class PegawaiForm
                                                 Program::query()
                                                     ->orderBy('nama_program')
                                                     ->get()
-                                                    ->mapWithKeys(fn($program) => [
-                                                        $program->id => "{$program->nama_program} - {$program->desc_program}"
+                                                    ->mapWithKeys(fn ($program) => [
+                                                        $program->id => "{$program->nama_program} - {$program->desc_program}",
                                                     ])
                                             )
                                             ->live()
                                             ->searchable(),
-
 
                                         Select::make('aktiviti_id')
                                             ->label('Aktiviti')
                                             ->options(function (Get $get) {
                                                 $programId = $get('program_id');
 
-                                                if (!$programId) {
+                                                if (! $programId) {
                                                     return [];
                                                 }
 
                                                 return Aktiviti::where('program_id', $programId)
                                                     ->orderBy('no_aktivit')
                                                     ->get()
-                                                    ->mapWithKeys(fn($aktiviti) => [
-                                                        $aktiviti->id => "{$aktiviti->no_aktivit} - {$aktiviti->nama_aktiviti}"
+                                                    ->mapWithKeys(fn ($aktiviti) => [
+                                                        $aktiviti->id => "{$aktiviti->no_aktivit} - {$aktiviti->nama_aktiviti}",
                                                     ]);
                                             })
-                                            ->searchable()
-
-                                        ,
+                                            ->searchable(),
                                     ])
-                                    ->visible(fn(Get $get) => $get('is_kontrak')),
+                                    ->visible(fn (Get $get) => $get('is_kontrak')),
                                 TextEntry::make('program')
                                     ->label('program')
                                     ->getStateUsing(function ($record) {
@@ -673,7 +702,7 @@ class PegawaiForm
                                             ? "{$program->nama_program} : {$program->desc_program}"
                                             : '-';
                                     })
-                                    ->visible(fn(Get $get) => $get('is_kontrak_interim') || $get('is_tetap')),
+                                    ->visible(fn (Get $get) => $get('is_kontrak_interim') || $get('is_tetap')),
 
                                 TextEntry::make('aktiviti')
                                     ->label('Aktiviti')
@@ -685,23 +714,33 @@ class PegawaiForm
                                             ? "{$aktiviti->no_aktivit} - {$aktiviti->nama_aktiviti}"
                                             : '-';
                                     })
-                                    ->visible(fn(Get $get) => $get('is_kontrak_interim') || $get('is_tetap')),
+                                    ->visible(fn (Get $get) => $get('is_kontrak_interim') || $get('is_tetap')),
 
                                 TextEntry::make('lain-lain')
                                     ->label('Lain-lain')
                                     ->getStateUsing(function ($record) {
-                                        $isKontrak = $record?->is_kontrak == 1;
-                                        $waranJawatan = $record?->waranJawatan;
+                                        // No record on the create page — nothing to show yet.
+                                        if (! $record) {
+                                            return null;
+                                        }
 
-                                        $ptjPegawaiId = $record?->ptj?->id;
+                                        $isKontrak = $record->is_kontrak == 1;
+                                        $waranJawatan = $record->waranJawatan;
+
+                                        // If pegawai doesn't have waran jawatan
+                                        if (! $waranJawatan) {
+                                            return 'Tiada';
+                                        }
+
+                                        $ptjPegawaiId = $record->ptj?->id;
                                         $ptjWaranId = $waranJawatan?->ptj?->id;
 
-                                        return (!$isKontrak && $ptjPegawaiId !== $ptjWaranId)
+                                        return (! $isKontrak && $ptjPegawaiId !== $ptjWaranId)
                                             ? 'Pinjam'
                                             : 'Tiada';
                                     })
                                     ->badge()
-                                    ->color(fn($state) => match ($state) {
+                                    ->color(fn ($state) => match ($state) {
                                         'Pinjam' => 'danger',
                                         'Tiada' => 'success',
                                         default => 'gray',
@@ -711,36 +750,35 @@ class PegawaiForm
                                 DatePicker::make('tarikh_pinjam')
                                     ->label('Tarikh Pinjam')
                                     ->native(false)
+                                    ->displayFormat('d F Y')
                                     ->visible(function ($record) {
-                                        if (!$record) {
+                                        if (! $record) {
                                             return false;
                                         }
 
                                         $waranJawatan = $record->waranJawatan;
 
-                                        return !$record->is_kontrak
+                                        if (! $waranJawatan) {
+                                            return false;
+                                        }
+
+                                        return ! $record->is_kontrak
                                             && $record->ptj?->id !== $waranJawatan?->ptj?->id;
                                     })
                                     ->required(function ($record) {
-    if (!$record) {
-        return false;
-    }
+                                        if (! $record) {
+                                            return false;
+                                        }
 
-    return !$record->is_kontrak
-        && $record->ptj?->id !== $record->waranJawatan?->ptj?->id;
-})
+                                        return ! $record->is_kontrak
+                                            && $record->ptj?->id !== $record->waranJawatan?->ptj?->id;
+                                    }),
 
                             ]),
-
-
 
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
-
-
-
-
 
             ]);
     }

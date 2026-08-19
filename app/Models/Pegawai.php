@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Pegawai extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'ptj_id',
         'bahagian_id',
@@ -29,9 +30,11 @@ class Pegawai extends Model
         'is_kup',
         'is_kupj',
         'is_jtw',
+        'tarikh_pinjam',
+        'tarikh_sandang',
         'emel',
         'ada_unit',
-        'ada_subunit'
+        'ada_subunit',
     ];
 
     protected static function booted()
@@ -40,7 +43,7 @@ class Pegawai extends Model
             $user = auth()->user();
 
             // No authenticated user (Artisan, Queue, etc.)
-            if (!$user) {
+            if (! $user) {
                 return;
             }
 
@@ -57,6 +60,7 @@ class Pegawai extends Model
             });
         });
     }
+
     public function ptj()
     {
         return $this->belongsTo(Ptj::class, 'ptj_id');
@@ -96,6 +100,4 @@ class Pegawai extends Model
     {
         return $this->hasOne(WaranJawatan::class, 'pegawai_id');
     }
-
-
 }
