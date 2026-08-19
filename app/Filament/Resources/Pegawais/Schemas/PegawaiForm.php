@@ -47,6 +47,10 @@ class PegawaiForm
                                 TextInput::make('nokp')
                                     ->label('No Kad Pengenalan')
                                     ->required()
+                                    ->regex('/^\d{12}$/')
+                                    ->validationMessages([
+                                        'regex' => 'No Kad Pengenalan mesti 12 digit angka (tanpa sengkang).',
+                                    ])
                                     ->reactive()
                                     // ->unique(ignoreRecord: true, column: 'nokp')
                                     ->afterStateUpdated(function ($state, callable $set) {
@@ -686,10 +690,10 @@ class PegawaiForm
                                 TextEntry::make('lain-lain')
                                     ->label('Lain-lain')
                                     ->getStateUsing(function ($record) {
-                                        $isKontrak = $record->is_kontrak == 1;
-                                        $waranJawatan = $record->waranJawatan;
+                                        $isKontrak = $record?->is_kontrak == 1;
+                                        $waranJawatan = $record?->waranJawatan;
 
-                                        $ptjPegawaiId = $record->ptj?->id;
+                                        $ptjPegawaiId = $record?->ptj?->id;
                                         $ptjWaranId = $waranJawatan?->ptj?->id;
 
                                         return (!$isKontrak && $ptjPegawaiId !== $ptjWaranId)

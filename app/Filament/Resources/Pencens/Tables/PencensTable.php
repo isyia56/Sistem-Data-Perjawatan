@@ -23,6 +23,7 @@ class PencensTable
         return $table
             ->defaultPaginationPageOption(5)
             ->recordUrl(null)
+            ->emptyStateHeading('Tiada Rekod Penamatan Perkhidmatan')
             ->columns([
                 TextColumn::make('no')
                     ->label('Bil')
