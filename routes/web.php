@@ -1,37 +1,93 @@
 <?php
 
-use App\Http\Controllers\DataKeseluruhanExportController;
-use App\Http\Controllers\DataKontrakExportController;
-use App\Http\Controllers\JikByJawatanExportController;
-use App\Http\Controllers\LetakJawatanExportController;
-use App\Http\Controllers\PenamatanPerkhidmatanExportController;
-use App\Http\Controllers\UserExportController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\WaranController;
+use App\Http\Controllers\AktivitiController;
+use App\Http\Controllers\ButiranController;
+use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\PtjController;
+use App\Http\Controllers\BahagianController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\SubunitController;
+use App\Http\Controllers\GredController;
+use App\Http\Controllers\JawatanController;
+use App\Http\Controllers\OpsyenPencenController;
+use App\Http\Controllers\ParlimenController;
+use App\Http\Controllers\DunController;
+use App\Http\Controllers\PenggunaController;
+use App\Http\Controllers\JawatanGredController;
+use App\Http\Controllers\DashboardController;
 
+// Redirect root to login
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
-Route::get('/export-users', [UserExportController::class, 'export'])
-    ->middleware('auth')
-    ->name('export.users');
+// Guest routes
+Route::middleware('guest')->group(function () {
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
 
-// Route::get('/export-letakJawatan', [LetakJawatanExportController::class, 'export'])
-//     ->name('export.letakJawatan');
+    Route::post('/login', function (Request $request) {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-Route::get('/export-letak-jawatan', [LetakJawatanExportController::class, 'export'])
-    ->name('export.letakJawatan');
+        if (Auth::attempt($credentials, $request->remember)) {
+            $request->session()->regenerate();
+            return redirect()->intended('/dashboard');
+        }
 
-Route::get('/export-penamatan-perkhidmatan', [PenamatanPerkhidmatanExportController::class, 'export'])
-    ->name('export.penamatanPerkhidmatan');
+        return back()->withErrors([
+            'email' => 'Email atau kata laluan tidak betul.',
+        ]);
+    })->name('login.post');
+});
 
-Route::get('/export-data-keseluruhan', [DataKeseluruhanExportController::class, 'export'])
-    ->name('export.dataKeseluruhan');
+// Authenticated routes
+Route::middleware('auth')->group(function () {
 
-Route::get('/export-data-kontrak', [DataKontrakExportController::class, 'export'])
-    ->middleware('auth')
-    ->name('export.dataKontrak');
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::get('/export-jik-by-jawatan', [JikByJawatanExportController::class, 'export'])
-    ->middleware('auth')
-    ->name('export.jikByJawatan');
+    // Logout
+    Route::post('/logout', function (Request $request) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
+    })->name('logout');
+
+    // Pengurusan
+    Route::resource('pegawai', PegawaiController::class);
+    Route::resource('pegawai-kontrak', App\Http\Controllers\PegawaiKontrakController::class);
+    Route::resource('waran', WaranController::class);
+
+    // Organisasi
+    Route::resource('ptj', PtjController::class);
+    Route::resource('bahagian', BahagianController::class);
+    Route::resource('unit', UnitController::class);
+    Route::resource('subunit', SubunitController::class);
+
+    // Rujukan
+    Route::resource('program', ProgramController::class);
+    Route::resource('aktiviti', AktivitiController::class);
+    Route::resource('butiran', ButiranController::class);
+    Route::resource('gred', GredController::class);
+    Route::resource('jawatan', JawatanController::class);
+    Route::resource('opsyen-pencen', OpsyenPencenController::class);
+
+    // Lokasi
+    Route::resource('parlimen', ParlimenController::class);
+    Route::resource('dun', DunController::class);
+
+    // Sistem
+    Route::resource('pengguna', PenggunaController::class);
+    Route::resource('jawatan-gred', JawatanGredController::class);
+
+});
