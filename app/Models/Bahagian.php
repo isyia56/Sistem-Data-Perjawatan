@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Bahagian extends Model
 {
     use SoftDeletes;
+
     protected $table = 'bahagians';
+
     protected $fillable = [
         'ptj_id',
         'nama_bahagian',
@@ -19,15 +21,15 @@ class Bahagian extends Model
 
     public function ptj()
     {
-        return $this->belongsTo(PTJ::class, 'ptj_id');
+        return $this->belongsTo(Ptj::class, 'ptj_id');
     }
 
-        public function units()
+    public function units()
     {
         return $this->hasMany(Unit::class);
     }
 
-        public function parlimen()
+    public function parlimen()
     {
         return $this->belongsTo(Parlimen::class);
     }

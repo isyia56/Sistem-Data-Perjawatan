@@ -15,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Log;
 
 class RequestPasswordReset extends BaseRequestPasswordReset
 {
@@ -59,20 +60,50 @@ class RequestPasswordReset extends BaseRequestPasswordReset
         $user = User::where('nokp', $data['nokp'])->first();
 
         if ($user) {
-            $token = app('auth.password.broker')
-                ->createToken($user);
+            // Validate email before attempting send
+            if (blank($user->email)) {
+                Log::warning('Password reset requested for user without email', ['user_id' => $user->id, 'nokp' => $data['nokp']]);
+            } else {
+                $token = app('auth.password.broker')
+                    ->createToken($user);
 
-            $notification = app(
-                ResetPasswordNotification::class,
-                ['token' => $token]
-            );
+                $notification = app(
+                    ResetPasswordNotification::class,
+                    ['token' => $token]
+                );
 
-            $notification->url = Filament::getResetPasswordUrl(
-                $token,
-                $user
-            );
+                $notification->url = Filament::getResetPasswordUrl(
+                    $token,
+                    $user
+                );
 
-            $user->notify($notification);
+                // Send synchronously — Filament's ResetPassword implements ShouldQueue
+                // which with QUEUE_CONNECTION=database would leave the mail stuck in
+                // `jobs` until a worker runs. `notifyNow` bypasses the queue.
+                try {
+                    $user->notifyNow($notification);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send password reset email', [
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    Notification::make()
+                        ->title('Gagal menghantar emel')
+                        ->body('Emel reset tidak dapat dihantar ('.$e->getMessage().'). Sila hubungi pentadbir atau cuba lagi.')
+                        ->danger()
+                        ->send();
+
+                    $this->dispatch('cf-turnstile-reset');
+                    try {
+                        $this->js('window.dispatchEvent(new CustomEvent("cf-turnstile-reset"))');
+                    } catch (\Throwable $e2) {
+                    }
+
+                    return;
+                }
+            }
         }
 
         Notification::make()
