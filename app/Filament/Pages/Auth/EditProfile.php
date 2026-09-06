@@ -5,20 +5,21 @@ namespace App\Filament\Pages\Auth;
 use Filament\Actions\Action;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Stack;
 use Filament\Forms\Components\TextInput;
-use Filament\Pages\Concerns\HasMaxWidth;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\MaxWidth;
 use Filament\Support\Enums\Width;
 
 class EditProfile extends BaseEditProfile
 {
-
     public function getMaxContentWidth(): Width
     {
-        return Width::FiveExtraLarge;
+        return Width::Full;
+    }
+
+    public function getMaxWidth(): Width
+    {
+        return Width::Full;
     }
 
     protected function getSaveFormAction(): Action
@@ -29,17 +30,17 @@ class EditProfile extends BaseEditProfile
             ->requiresConfirmation()
             ->modalHeading('Pengesahan')
             ->modalDescription('Adakah anda pasti mahu simpan perubahan ini?')
-            ->action(fn() => $this->save());
+            ->action(fn () => $this->save());
     }
-
 
     protected function getCancelFormAction(): Action
     {
-       return Action::make('cancel')
-        ->label('Kembali ke Laman Utama')
-        ->url('/app')
-        ->color(false);
+        return Action::make('cancel')
+            ->label('Kembali ke Laman Utama')
+            ->url('/app')
+            ->color(false);
     }
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -80,7 +81,6 @@ class EditProfile extends BaseEditProfile
                             ->readOnly()
                             ->dehydrated(false),
 
-
                         $this->getEmailFormComponent()->label('Email'),
 
                         TextInput::make('phone_number')
@@ -92,7 +92,7 @@ class EditProfile extends BaseEditProfile
                             ->label('Peranan')
                             ->readOnly()
                             ->dehydrated(false)
-                            ->formatStateUsing(fn($state) => match ($state) {
+                            ->formatStateUsing(fn ($state) => match ($state) {
                                 1 => 'Superadmin',
                                 2 => 'Admin',
                                 3 => 'PTJ',
@@ -103,7 +103,7 @@ class EditProfile extends BaseEditProfile
                         $this->getPasswordConfirmationFormComponent(),
                         $this->getCurrentPasswordFormComponent(),
 
-                    ])
+                    ]),
             ]);
     }
 }
