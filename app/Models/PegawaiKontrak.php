@@ -24,7 +24,7 @@ class PegawaiKontrak extends Model
 
     public function pegawai()
     {
-        return $this->belongsTo(Pegawai::class, 'ptj_id');
+        return $this->belongsTo(Pegawai::class, 'pegawai_id');
     }
 
     public function program()
