@@ -85,7 +85,8 @@ class ProgramForm
                                 fn (array $state): ?string => filled($state['no_aktivit'] ?? null) || filled($state['nama_aktiviti'] ?? null)
                                 ? ($state['no_aktivit'] ?? '').' - '.($state['nama_aktiviti'] ?? '')
                                 : 'Tambah Aktiviti'
-                            )->collapsed(),
+                            ),
+                            
                     ])
                     ->columnSpanFull(),
             ]);
