@@ -12,6 +12,7 @@ use App\Http\Controllers\L4ExportController;
 use App\Http\Controllers\L6ExportController;
 use App\Http\Controllers\L7ExportController;
 use App\Http\Controllers\L8ExportController;
+use App\Http\Controllers\L9ExportController;
 use App\Http\Controllers\LetakJawatanExportController;
 use App\Http\Controllers\PenamatanPerkhidmatanExportController;
 use App\Http\Controllers\UserExportController;
@@ -78,6 +79,11 @@ Route::get('export-l7', [L7ExportController::class, 'export'])
 Route::get('export-l8', [L8ExportController::class, 'export'])
     ->middleware('auth')
     ->name('export.l8');
+
+// L9
+Route::get('export-l9', [L9ExportController::class, 'export'])
+    ->middleware('auth')
+    ->name('export.l9');
 
 // Report fasility by parlimen
 Route::get('/export-fasiliti-by-parlimen', [FasilitiByParlimenExportController::class, 'export'])
