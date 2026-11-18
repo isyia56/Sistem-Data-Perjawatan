@@ -70,3 +70,31 @@ test('waran table butiran list excludes a deleted waran jawatan', function () {
     expect($butiran)->toContain('144')
         ->and($butiran)->not->toContain('157');
 });
+
+test('nama penyandang status can be filtered by assigned and unassigned rows', function () {
+    Schema::getConnection()->table('waran_jawatans')->insert([
+        [
+            'pegawai_id' => 87,
+            'butiran' => '144',
+            'status' => 'active',
+        ],
+        [
+            'pegawai_id' => null,
+            'butiran' => '157',
+            'status' => 'active',
+        ],
+    ]);
+
+    $withPenyandang = WaranJawatan::query()
+        ->whereNotNull('pegawai_id')
+        ->pluck('butiran');
+
+    $withoutPenyandang = WaranJawatan::query()
+        ->whereNull('pegawai_id')
+        ->pluck('butiran');
+
+    expect($withPenyandang->all())->toContain('144')
+        ->and($withPenyandang->all())->not->toContain('157')
+        ->and($withoutPenyandang->all())->toContain('157')
+        ->and($withoutPenyandang->all())->not->toContain('144');
+});

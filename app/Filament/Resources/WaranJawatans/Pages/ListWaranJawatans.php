@@ -6,7 +6,9 @@ use App\Filament\Resources\WaranJawatans\WaranJawatanResource;
 use App\Filament\Resources\WaranJawatans\Widgets\NamaPenyandang;
 use App\Filament\Resources\WaranJawatans\Widgets\WaranJawatanStats;
 use App\Models\Program;
+use App\Models\WaranJawatan;
 use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +18,8 @@ use Illuminate\Support\HtmlString;
 class ListWaranJawatans extends ListRecords
 {
     protected static string $resource = WaranJawatanResource::class;
+
+    public string $namaPenyandangStatus = 'all';
 
     protected function getHeaderActions(): array
     {
@@ -48,6 +52,46 @@ class ListWaranJawatans extends ListRecords
         }
 
         return $tabs;
+    }
+
+    protected function getTableHeaderActions(): array
+    {
+        return [
+            Action::make('namaPenyandangAll')
+                ->label('Semua')
+                ->color($this->namaPenyandangStatus === 'all' ? 'primary' : 'gray')
+                ->action(function (): void {
+                    $this->namaPenyandangStatus = 'all';
+                    $this->resetTable();
+                }),
+            Action::make('namaPenyandangAda')
+                ->label('Ada Penyandang')
+                ->color($this->namaPenyandangStatus === 'ada' ? 'success' : 'gray')
+                ->action(function (): void {
+                    $this->namaPenyandangStatus = 'ada';
+                    $this->resetTable();
+                }),
+            Action::make('namaPenyandangTiada')
+                ->label('Tiada Penyandang')
+                ->color($this->namaPenyandangStatus === 'tiada' ? 'warning' : 'gray')
+                ->action(function (): void {
+                    $this->namaPenyandangStatus = 'tiada';
+                    $this->resetTable();
+                }),
+        ];
+    }
+
+    protected function getTableQuery(): Builder
+    {
+        $query = WaranJawatanResource::getEloquentQuery();
+
+        if ($this->namaPenyandangStatus === 'ada') {
+            $query->whereNotNull('waran_jawatans.pegawai_id');
+        } elseif ($this->namaPenyandangStatus === 'tiada') {
+            $query->whereNull('waran_jawatans.pegawai_id');
+        }
+
+        return $query;
     }
 
     protected function getHeaderWidgets(): array

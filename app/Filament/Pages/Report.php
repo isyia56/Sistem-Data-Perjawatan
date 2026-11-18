@@ -113,6 +113,10 @@ class Report extends Page implements HasTable
                         'name' => 'L8: Laporan Kedudukan Perjawatan Dan Pengisian Mengikut Program / Aktiviti ',
                         // 'description' => 'Senarai jawatan kosong',
                     ],
+                    [
+                        'id' => 9,
+                        'name' => 'L9: Laporan JIK Mengikut Gred Gaji',
+                    ],
                 ];
 
                 if (! $search) {
@@ -183,6 +187,24 @@ class Report extends Page implements HasTable
                                     ->required(fn (Get $get): bool => filled($get('program_id'))),
                             ],
 
+                            9 => [
+                                Select::make('jawatan_id')
+                                    ->label('Pilih Jawatan')
+                                    ->options(
+                                        Jawatan::orderBy('desc_jawatan')
+                                            ->pluck('desc_jawatan', 'id')
+                                    )
+                                    ->searchable()
+                                    ->live()
+                                    ->afterStateUpdated(fn (Set $set) => $set('gred_combination', null))
+                                    ->required(),
+                                Select::make('gred_combination')
+                                    ->label('Pilih Gred')
+                                    ->options(fn (Get $get): array => $this->l9GradeOptionsForJawatan($get('jawatan_id')))
+                                    ->searchable()
+                                    ->required(),
+                            ],
+
                             default => [],
                         };
 
@@ -214,6 +236,11 @@ class Report extends Page implements HasTable
                             8 => redirect()->route('export.l8', [
                                 'program_id' => $data['program_id'],
                                 'aktiviti_id' => $data['aktiviti_id'],
+                            ]),
+
+                            9 => redirect()->route('export.l9', [
+                                'jawatan_id' => $data['jawatan_id'],
+                                'gred_combination' => $data['gred_combination'],
                             ]),
 
                         };
@@ -277,6 +304,43 @@ class Report extends Page implements HasTable
             ->sortByDesc(fn (string $label) => collect(explode('/', $label))
                 ->map(fn (string $code) => (int) substr($code, 1))
                 ->max())
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function l9GradeOptionsForJawatan(mixed $jawatanId): array
+    {
+        if (blank($jawatanId)) {
+            return [];
+        }
+
+        $gredIds = WaranJawatan::query()
+            ->listed()
+            ->with('pegawai.jawatan_gred.gred')
+            ->whereJsonContains('jawatan_ids', (int) $jawatanId)
+            ->where(fn ($query) => $query->whereNull('status')->orWhere('status', '!=', 'removed'))
+            ->get()
+            ->map(fn (WaranJawatan $waran): int => (int) (
+                $waran->pegawai?->jawatan_gred?->gred_id
+                ?? 0
+            ))
+            ->filter(fn (int $gredId): bool => $gredId > 0)
+            ->unique()
+            ->values();
+
+        if ($gredIds->isEmpty()) {
+            return [];
+        }
+
+        return Gred::query()
+            ->whereIn('id', $gredIds)
+            ->get()
+            ->sortBy(fn (Gred $gred) => (int) substr($gred->kod_gred, 1))
+            ->mapWithKeys(fn (Gred $gred): array => [
+                (string) $gred->id => $gred->kod_gred,
+            ])
             ->all();
     }
 

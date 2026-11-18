@@ -160,19 +160,37 @@ class WaranJawatan extends Model
                 ->pluck('kod_gred', 'id');
         $waranGreds = collect($waranGredIds)
             ->map(fn ($id) => $waranGredsById->get((int) $id))
-            ->filter(fn ($gred): bool => filled($gred)
-                && (! filled($pegawaiGred) || strcasecmp($gred, $pegawaiGred) !== 0))
-            ->implode('/');
+            ->filter(fn ($gred): bool => filled($gred))
+            ->values();
 
-        $pegawaiPosition = collect([
-            $pegawaiJawatan,
-            $pegawaiGred,
-        ])->filter()->implode(' ');
+        $pegawaiPosition = filled($pegawaiJawatan)
+            ? trim((string) $pegawaiJawatan)
+                .(filled($pegawaiGred) ? ' ('.trim((string) $pegawaiGred).')' : '')
+            : (filled($pegawaiGred) ? '('.trim((string) $pegawaiGred).')' : '');
 
-        $waranPosition = collect([
-            $waranJawatans,
-            $waranGreds,
-        ])->filter()->implode(' ');
+        $waranGredLabel = $waranGreds
+            ->filter(fn ($gred): bool => ! filled($pegawaiGred)
+                || strcasecmp($gred, $pegawaiGred) !== 0)
+            ->implode(', ');
+
+        $waranPosition = filled($waranJawatans)
+            ? $waranJawatans.(filled($waranGredLabel) ? ' ('.$waranGredLabel.')' : '')
+            : (filled($waranGredLabel) ? '('.$waranGredLabel.')' : '');
+
+        if (filled($pegawaiJawatan) && $waranJawatans === '' && filled($waranGredLabel)) {
+            $remainingGredLabels = $waranGredLabel === '' ? [] : explode(', ', $waranGredLabel);
+            $allGredLabels = collect(array_filter(array_merge(
+                [$pegawaiGred],
+                $remainingGredLabels,
+            )))
+                ->filter(fn ($gred): bool => filled($gred))
+                ->unique(fn (string $gred): string => strtoupper(trim($gred)))
+                ->implode(', ');
+
+            $pegawaiPosition = trim((string) $pegawaiJawatan)
+                .' ('.$allGredLabels.')';
+            $waranPosition = '';
+        }
 
         $position = $pegawaiPosition;
 

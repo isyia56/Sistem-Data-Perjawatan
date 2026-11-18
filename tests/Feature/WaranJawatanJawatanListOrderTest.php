@@ -60,5 +60,27 @@ test('jawatan gred display places KUP between assigned and remaining posts', fun
     $waranJawatan->setRelation('pegawai', $pegawai);
 
     expect($waranJawatan->jawatan_gred_display)
-        ->toBe('PENOLONG AKAUNTAN W5 KUP, PEMBANTU TADBIR (KEWANGAN) W1');
+        ->toBe('PENOLONG AKAUNTAN (W5) KUP, PEMBANTU TADBIR (KEWANGAN) (W1)');
+});
+
+test('jawatan gred display puts assigned and remaining grades in brackets', function () {
+    $jawatan = Jawatan::query()->create(['desc_jawatan' => 'PEGAWAI TEKNOLOGI MAKLUMAT']);
+    $gredF10 = Gred::query()->create(['kod_gred' => 'F10']);
+    $gredF9 = Gred::query()->create(['kod_gred' => 'F9']);
+
+    $jawatanGred = new Jawatan_Gred;
+    $jawatanGred->setRelation('jawatan', $jawatan);
+    $jawatanGred->setRelation('gred', $gredF10);
+
+    $pegawai = new Pegawai;
+    $pegawai->setRelation('jawatan_gred', $jawatanGred);
+
+    $waranJawatan = new WaranJawatan([
+        'jawatan_ids' => [$jawatan->id],
+        'gred_ids' => [$gredF10->id, $gredF9->id],
+    ]);
+    $waranJawatan->setRelation('pegawai', $pegawai);
+
+    expect($waranJawatan->jawatan_gred_display)
+        ->toBe('PEGAWAI TEKNOLOGI MAKLUMAT (F10, F9)');
 });
