@@ -423,7 +423,11 @@ class Report extends Page implements HasTable
         $waranQuery = WaranJawatan::query()
             ->listed()
             ->with('pegawai.jawatan_gred.gred')
-            ->whereJsonContains('jawatan_ids', (int) $jawatanId)
+            ->where(function ($query) use ($jawatanId): void {
+                $query->whereJsonContains('jawatan_ids', (int) $jawatanId)
+                    ->orWhereHas('jawatanGred', fn ($jawatanGredQuery) =>
+                        $jawatanGredQuery->where('jawatan_id', (int) $jawatanId));
+            })
             ->where(fn ($query) => $query->whereNull('status')->orWhere('status', '!=', 'removed'));
 
         $user = auth()->user();

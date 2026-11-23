@@ -7,6 +7,7 @@ use App\Models\Jawatan;
 use App\Models\WaranJawatan;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithEvents;
@@ -63,9 +64,22 @@ class L9Export implements FromCollection, WithCustomStartCell, WithEvents
             ->with([
                 'aktiviti.program',
                 'pegawai.jawatan_gred.gred',
+                'jawatanGred',
                 'ptj',
             ])
-            ->whereJsonContains('jawatan_ids', $this->jawatanId)
+            ->where(function (Builder $query): void {
+                $query->whereJsonContains('jawatan_ids', $this->jawatanId)
+                    ->orWhereHas('jawatanGred', fn (Builder $jawatanGredQuery): Builder =>
+                        $jawatanGredQuery->where('jawatan_id', $this->jawatanId));
+            })
+            ->when(
+                auth()->user()?->isUser() && filled(auth()->user()->ptj_id),
+                fn (Builder $query): Builder => $query->where(function (Builder $query): void {
+                    $query->where('ptj_id', auth()->user()->ptj_id)
+                        ->orWhereHas('pegawai', fn (Builder $pegawaiQuery): Builder =>
+                            $pegawaiQuery->where('ptj_id', auth()->user()->ptj_id));
+                }),
+            )
             ->get()
             ->filter(fn (WaranJawatan $waran) => ($waran->status ?? 'active') !== 'removed');
 

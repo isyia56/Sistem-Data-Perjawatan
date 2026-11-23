@@ -6,6 +6,7 @@ use App\Exports\L9Export;
 use App\Models\Gred;
 use App\Models\WaranJawatan;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -35,7 +36,19 @@ class L9ExportController extends Controller
         $hasCombination = WaranJawatan::query()
             ->listed()
             ->with('pegawai.jawatan_gred')
-            ->whereJsonContains('jawatan_ids', (int) $validated['jawatan_id'])
+            ->where(function (Builder $query) use ($validated): void {
+                $query->whereJsonContains('jawatan_ids', (int) $validated['jawatan_id'])
+                    ->orWhereHas('jawatanGred', fn (Builder $jawatanGredQuery): Builder =>
+                        $jawatanGredQuery->where('jawatan_id', (int) $validated['jawatan_id']));
+            })
+            ->when(
+                $request->user()?->isUser() && filled($request->user()->ptj_id),
+                fn (Builder $query): Builder => $query->where(function (Builder $query) use ($request): void {
+                    $query->where('ptj_id', $request->user()->ptj_id)
+                        ->orWhereHas('pegawai', fn (Builder $pegawaiQuery): Builder =>
+                            $pegawaiQuery->where('ptj_id', $request->user()->ptj_id));
+                }),
+            )
             ->get()
             ->contains(function (WaranJawatan $waran) use ($gredIds): bool {
                 $pegawaiGredId = (int) ($waran->pegawai?->jawatan_gred?->gred_id ?? 0);
