@@ -40,6 +40,14 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
                     ->orWhere('status', '!=', 'removed');
             })
             ->where('aktiviti_id', $this->aktivitiId)
+            ->when(
+                auth()->user()?->isUser() && filled(auth()->user()->ptj_id),
+                fn (Builder $query): Builder => $query->where(function (Builder $query): void {
+                    $query->where('ptj_id', auth()->user()->ptj_id)
+                        ->orWhereHas('pegawai', fn (Builder $pegawaiQuery): Builder => $pegawaiQuery
+                            ->where('ptj_id', auth()->user()->ptj_id));
+                }),
+            )
             ->with([
                 'aktiviti.program',
                 'ptj',

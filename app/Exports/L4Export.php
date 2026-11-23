@@ -67,6 +67,10 @@ class L4Export implements FromCollection, WithEvents
 
         $warans = WaranJawatan::query()
             ->with(['pegawai', 'jawatanGred.jawatan', 'jawatanGred.gred'])
+            ->when(
+                auth()->user()?->isUser() && filled(auth()->user()->ptj_id),
+                fn ($query) => $query->where('ptj_id', auth()->user()->ptj_id),
+            )
             ->get()
             ->filter(fn (WaranJawatan $waran): bool => ($waran->status ?? 'active') !== 'removed');
 
