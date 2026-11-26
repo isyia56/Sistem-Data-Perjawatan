@@ -113,6 +113,7 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
                 && (int) $pegawai->ptj_id !== (int) $waranJawatan->ptj_id;
 
             $activity = $waranJawatan->aktiviti;
+            $activityNo = trim((string) ($activity?->no_aktivit ?? ''));
             $activityLabel = trim(implode(' - ', array_filter([
                 $activity?->no_aktivit,
                 $activity?->nama_aktiviti,
@@ -132,7 +133,7 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
             );
 
             return [
-                $activityLabel,
+                $activityNo,
                 $waranJawatan->butiran,
                 $jawatan,
                 $gredWaran,
@@ -144,7 +145,7 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
                 $isContract ? 1 : '',
                 $pegawai?->nama,
                 $pegawai?->nokp,
-                $pegawai?->jantina,
+                $this->jantinaCode($pegawai?->jantina),
                 $pegawai ? $this->placementLabel([
                     $pegawai->ptj?->nama_ptj,
                     $pegawai->bahagian?->nama_bahagian,
@@ -199,6 +200,17 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
             ->implode(' / ');
     }
 
+    private function jantinaCode(?string $jantina): string
+    {
+        $value = mb_strtolower(trim((string) $jantina));
+
+        return match (true) {
+            $value === 'perempuan' => 'P',
+            $value === 'lelaki' => 'L',
+            default => trim((string) $jantina),
+        };
+    }
+
     public function registerEvents(): array
     {
         return [
@@ -215,7 +227,10 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
                 $sheet->setCellValue('A2', 'JABATAN KESIHATAN NEGERI KEDAH DARUL AMAN (BAHAGIAN PENGURUSAN)');
                 $sheet->getStyle('A1:Q2')->applyFromArray([
                     'font' => ['name' => 'Calibri', 'bold' => true, 'size' => 12],
-                    'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
                 ]);
                 $sheet->getRowDimension(1)->setRowHeight(22);
                 $sheet->getRowDimension(2)->setRowHeight(22);
@@ -289,7 +304,11 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
                         ],
                         'borders' => ['allBorders' => $thin],
                     ]);
+                    $sheet->getStyle("A6:B{$this->lastRow}")->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle("F6:J{$this->lastRow}")->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("M6:M{$this->lastRow}")->getAlignment()
                         ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 }
 

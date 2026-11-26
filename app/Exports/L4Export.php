@@ -140,6 +140,7 @@ class L4Export implements FromCollection, WithEvents
                 ))
                 ->filter(fn ($name): bool => filled($name))
                 ->unique()
+                ->sort(fn (string $a, string $b): int => strnatcasecmp($a, $b))
                 ->values();
             $gradeLabel = $gradeNames->implode('/');
 
@@ -217,7 +218,7 @@ class L4Export implements FromCollection, WithEvents
 
             $items = array_values($scheme['items']);
             usort($items, function (array $a, array $b): int {
-                return strnatcasecmp($b['grade'], $a['grade'])
+                return strnatcasecmp($a['grade'], $b['grade'])
                     ?: ($b['is_open_post'] <=> $a['is_open_post'])
                     ?: strnatcasecmp($a['label'], $b['label']);
             });
@@ -327,10 +328,12 @@ class L4Export implements FromCollection, WithEvents
                     'color' => ['rgb' => '000000'],
                 ];
 
+                $sheet->getParent()->getDefaultStyle()->getFont()->setName('Calibri');
+
                 $sheet->mergeCells('A1:G1');
                 $sheet->mergeCells('B2:C2');
                 $sheet->getStyle('A1:G1')->applyFromArray([
-                    'font' => ['name' => 'Arial', 'bold' => true, 'size' => 11],
+                    'font' => ['name' => 'Calibri', 'bold' => true, 'size' => 12],
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
                         'vertical' => Alignment::VERTICAL_CENTER,
@@ -344,7 +347,7 @@ class L4Export implements FromCollection, WithEvents
                 ]);
                 $sheet->getRowDimension(1)->setRowHeight(30);
                 $sheet->getStyle('A2:G2')->applyFromArray([
-                    'font' => ['name' => 'Arial', 'bold' => true, 'size' => 10],
+                    'font' => ['name' => 'Calibri', 'bold' => true, 'size' => 10],
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
                         'vertical' => Alignment::VERTICAL_CENTER,
@@ -375,7 +378,7 @@ class L4Export implements FromCollection, WithEvents
                     $sheet->mergeCells("B{$row}:G{$row}");
                     $sheet->mergeCells("A{$row}:A{$lastSchemeRow}");
                     $sheet->getStyle("A{$row}:G{$row}")->applyFromArray([
-                        'font' => ['name' => 'Arial', 'bold' => true, 'size' => 10],
+                        'font' => ['name' => 'Calibri', 'bold' => true, 'size' => 10],
                         'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
                         'borders' => ['allBorders' => $thin],
                     ]);
@@ -385,7 +388,7 @@ class L4Export implements FromCollection, WithEvents
 
                 foreach ($this->dataRows as $row) {
                     $sheet->getStyle("A{$row}:G{$row}")->applyFromArray([
-                        'font' => ['name' => 'Arial', 'size' => 10],
+                        'font' => ['name' => 'Calibri', 'size' => 10],
                         'alignment' => [
                             'vertical' => Alignment::VERTICAL_CENTER,
                             'wrapText' => true,
@@ -408,17 +411,19 @@ class L4Export implements FromCollection, WithEvents
                     }
 
                     $richText = new RichText;
-                    $richText->createText(substr($label, 0, $position));
+                    $before = $richText->createTextRun(substr($label, 0, $position));
+                    $before->getFont()->setName('Calibri')->setSize(10);
                     $openPost = $richText->createTextRun(substr($label, $position, strlen($phrase)));
-                    $openPost->getFont()->setColor(new Color('FFFF0000'));
-                    $richText->createText(substr($label, $position + strlen($phrase)));
+                    $openPost->getFont()->setName('Calibri')->setSize(10)->setColor(new Color('FFFF0000'));
+                    $after = $richText->createTextRun(substr($label, $position + strlen($phrase)));
+                    $after->getFont()->setName('Calibri')->setSize(10);
                     $sheet->setCellValue("C{$row}", $richText);
                 }
 
                 foreach ($this->totalRows as $row) {
                     $sheet->mergeCells("B{$row}:C{$row}");
                     $sheet->getStyle("B{$row}:G{$row}")->applyFromArray([
-                        'font' => ['name' => 'Arial', 'bold' => true, 'size' => 10],
+                        'font' => ['name' => 'Calibri', 'bold' => true, 'size' => 10],
                         'fill' => [
                             'fillType' => Fill::FILL_SOLID,
                             'startColor' => ['rgb' => 'F4B1D0'],
@@ -434,7 +439,7 @@ class L4Export implements FromCollection, WithEvents
 
                 $sheet->mergeCells("A{$this->grandTotalRow}:C{$this->grandTotalRow}");
                 $sheet->getStyle("A{$this->grandTotalRow}:G{$this->grandTotalRow}")->applyFromArray([
-                    'font' => ['name' => 'Arial', 'bold' => true, 'size' => 10],
+                    'font' => ['name' => 'Calibri', 'bold' => true, 'size' => 10],
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => ['rgb' => '00B0F0'],
