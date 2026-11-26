@@ -383,15 +383,6 @@ class Report extends Page implements HasTable
             ->whereJsonContains('jawatan_ids', (int) $jawatanId)
             ->where(fn ($query) => $query->whereNull('status')->orWhere('status', '!=', 'removed'));
 
-        $user = auth()->user();
-        if ($user && $user->isUser() && filled($user->ptj_id)) {
-            $waranQuery->where(function ($query) use ($user): void {
-                $query->where('ptj_id', $user->ptj_id)
-                    ->orWhereHas('pegawai', fn ($pegawaiQuery) => $pegawaiQuery
-                        ->where('ptj_id', $user->ptj_id));
-            });
-        }
-
         $gredIds = $waranQuery
             ->get(['gred_ids'])
             ->flatMap(fn (WaranJawatan $waran): array => array_map('intval', $waran->gred_ids ?? []))
@@ -426,6 +417,8 @@ class Report extends Page implements HasTable
             ->where(function ($query) use ($jawatanId): void {
                 $query->whereJsonContains('jawatan_ids', (int) $jawatanId)
                     ->orWhereHas('jawatanGred', fn ($jawatanGredQuery) =>
+                        $jawatanGredQuery->where('jawatan_id', (int) $jawatanId))
+                    ->orWhereHas('pegawai.jawatan_gred', fn ($jawatanGredQuery) =>
                         $jawatanGredQuery->where('jawatan_id', (int) $jawatanId));
             })
             ->where(fn ($query) => $query->whereNull('status')->orWhere('status', '!=', 'removed'));

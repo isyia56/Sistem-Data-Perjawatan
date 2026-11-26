@@ -70,6 +70,8 @@ class L9Export implements FromCollection, WithCustomStartCell, WithEvents
             ->where(function (Builder $query): void {
                 $query->whereJsonContains('jawatan_ids', $this->jawatanId)
                     ->orWhereHas('jawatanGred', fn (Builder $jawatanGredQuery): Builder =>
+                        $jawatanGredQuery->where('jawatan_id', $this->jawatanId))
+                    ->orWhereHas('pegawai.jawatan_gred', fn (Builder $jawatanGredQuery): Builder =>
                         $jawatanGredQuery->where('jawatan_id', $this->jawatanId));
             })
             ->when(

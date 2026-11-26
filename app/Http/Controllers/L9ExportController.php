@@ -39,6 +39,8 @@ class L9ExportController extends Controller
             ->where(function (Builder $query) use ($validated): void {
                 $query->whereJsonContains('jawatan_ids', (int) $validated['jawatan_id'])
                     ->orWhereHas('jawatanGred', fn (Builder $jawatanGredQuery): Builder =>
+                        $jawatanGredQuery->where('jawatan_id', (int) $validated['jawatan_id']))
+                    ->orWhereHas('pegawai.jawatan_gred', fn (Builder $jawatanGredQuery): Builder =>
                         $jawatanGredQuery->where('jawatan_id', (int) $validated['jawatan_id']));
             })
             ->when(

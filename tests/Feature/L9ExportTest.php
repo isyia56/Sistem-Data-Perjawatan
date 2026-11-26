@@ -102,6 +102,7 @@ test('l9 report follows the gred from nama penyandang instead of waran gred', fu
     $jawatan = Jawatan::query()->create(['desc_jawatan' => 'JURURAWAT']);
     $gredU9 = Gred::query()->create(['kod_gred' => 'U9']);
     $gredU10 = Gred::query()->create(['kod_gred' => 'U10']);
+    $gredU11 = Gred::query()->create(['kod_gred' => 'U11']);
 
     $jawatanGredU9 = Jawatan_Gred::query()->create([
         'jawatan_id' => $jawatan->id,
@@ -110,6 +111,10 @@ test('l9 report follows the gred from nama penyandang instead of waran gred', fu
     $jawatanGredU10 = Jawatan_Gred::query()->create([
         'jawatan_id' => $jawatan->id,
         'gred_id' => $gredU10->id,
+    ]);
+    $jawatanGredU11 = Jawatan_Gred::query()->create([
+        'jawatan_id' => $jawatan->id,
+        'gred_id' => $gredU11->id,
     ]);
 
     $ptj = Ptj::query()->create(['nama_ptj' => 'HOSPITAL BALING']);
@@ -128,6 +133,10 @@ test('l9 report follows the gred from nama penyandang instead of waran gred', fu
         'jawatan_gred_id' => $jawatanGredU10->id,
         'is_kontrak_interim' => true,
     ]);
+    $pegawaiU11 = Pegawai::query()->create([
+        'jawatan_gred_id' => $jawatanGredU11->id,
+        'is_tetap' => true,
+    ]);
 
     WaranJawatan::query()->create([
         'ptj_id' => $ptj->id,
@@ -145,13 +154,20 @@ test('l9 report follows the gred from nama penyandang instead of waran gred', fu
         'gred_ids' => [$gredU9->id],
         'status' => 'active',
     ]);
+    WaranJawatan::query()->create([
+        'ptj_id' => $ptj->id,
+        'aktiviti_id' => $aktiviti->id,
+        'pegawai_id' => $pegawaiU11->id,
+        'status' => 'active',
+    ]);
 
     $report = (new ReflectionClass(Report::class))->newInstanceWithoutConstructor();
     $gradeOptionsMethod = new ReflectionMethod(Report::class, 'l9GradeOptionsForJawatan');
     $gradeOptions = $gradeOptionsMethod->invoke($report, $jawatan->id);
 
     expect($gradeOptions)->toHaveKey((string) $gredU9->id, 'U9')
-        ->and($gradeOptions)->toHaveKey((string) $gredU10->id, 'U10');
+        ->and($gradeOptions)->toHaveKey((string) $gredU10->id, 'U10')
+        ->and($gradeOptions)->toHaveKey((string) $gredU11->id, 'U11');
 
     $export = new L9Export($jawatan->id, [$gredU9->id]);
     $rows = $export->collection();
