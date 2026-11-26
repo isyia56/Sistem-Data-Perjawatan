@@ -33,7 +33,7 @@ class L9ExportController extends Controller
             ]);
         }
 
-        $hasCombination = WaranJawatan::query()
+        $waranQuery = WaranJawatan::query()
             ->listed()
             ->with('pegawai.jawatan_gred')
             ->where(function (Builder $query) use ($validated): void {
@@ -42,16 +42,14 @@ class L9ExportController extends Controller
                         $jawatanGredQuery->where('jawatan_id', (int) $validated['jawatan_id']))
                     ->orWhereHas('pegawai.jawatan_gred', fn (Builder $jawatanGredQuery): Builder =>
                         $jawatanGredQuery->where('jawatan_id', (int) $validated['jawatan_id']));
-            })
-            ->when(
-                $request->user()?->isUser() && filled($request->user()->ptj_id),
-                fn (Builder $query): Builder => $query->where(function (Builder $query) use ($request): void {
-                    $query->where('ptj_id', $request->user()->ptj_id)
-                        ->orWhereHas('pegawai', fn (Builder $pegawaiQuery): Builder =>
-                            $pegawaiQuery->where('ptj_id', $request->user()->ptj_id));
-                }),
-            )
-            ->get()
+            });
+
+        $user = $request->user();
+        if ($user && $user->isPtjScoped()) {
+            $waranQuery->where('ptj_id', (int) $user->ptj_id);
+        }
+
+        $hasCombination = $waranQuery->get()
             ->contains(function (WaranJawatan $waran) use ($gredIds): bool {
                 $pegawaiGredId = (int) ($waran->pegawai?->jawatan_gred?->gred_id ?? 0);
 

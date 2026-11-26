@@ -75,7 +75,7 @@ it('shows all reports for role 3 users on the report page', function () {
         ->values()
         ->all();
 
-    expect($ids)->toBe([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect($ids)->toBe([1, 2, 3, 4, 5, 6, 7, 8]);
 
     $component
         ->assertSee('L1: Data Keseluruhan Mengikut PTJ')
@@ -86,5 +86,5 @@ it('shows all reports for role 3 users on the report page', function () {
         ->assertSee('L6: Laporan JIK Mengikut Gred')
         ->assertSee('L7: Laporan Maklumat Perjawatan Dan Penyandang Mengikut Jawatan')
         ->assertSee('L8: Laporan Kedudukan Perjawatan Dan Pengisian Mengikut Program / Aktiviti')
-        ->assertSee('L9: Laporan JIK Mengikut Gred Gaji');
+        ->assertDontSee('L9: Laporan JIK Mengikut Gred Gaji');
 });

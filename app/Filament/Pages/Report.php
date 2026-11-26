@@ -20,6 +20,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class Report extends Page implements HasTable
@@ -114,10 +115,10 @@ class Report extends Page implements HasTable
                         'name' => 'L8: Laporan Kedudukan Perjawatan Dan Pengisian Mengikut Program / Aktiviti ',
                         // 'description' => 'Senarai jawatan kosong',
                     ],
-                    [
-                        'id' => 9,
-                        'name' => 'L9: Laporan JIK Mengikut Gred Gaji',
-                    ],
+                    // [
+                    //     'id' => 9,
+                    //     'name' => 'L9: Laporan JIK Mengikut Gred Gaji',
+                    // ],
                 ];
 
                 if (! $search) {
@@ -214,10 +215,7 @@ class Report extends Page implements HasTable
                             9 => [
                                 Select::make('jawatan_id')
                                     ->label('Pilih Jawatan')
-                                    ->options(
-                                        Jawatan::orderBy('desc_jawatan')
-                                            ->pluck('desc_jawatan', 'id')
-                                    )
+                                    ->options(fn (): array => $this->l9JawatanOptions())
                                     ->searchable()
                                     ->live()
                                     ->afterStateUpdated(fn (Set $set) => $set('gred_combination', null))
@@ -411,34 +409,68 @@ class Report extends Page implements HasTable
     /**
      * @return array<int, string>
      */
+    protected function l9JawatanOptions(): array
+    {
+        $jawatanIds = $this->l9WaranQuery()
+            ->with(['jawatanGred', 'pegawai.jawatan_gred'])
+            ->get()
+            ->flatMap(function (WaranJawatan $waran): array {
+                $jawatanIds = array_map('intval', $waran->jawatan_ids ?? []);
+                $jawatanIds[] = (int) ($waran->jawatanGred?->jawatan_id ?? 0);
+                $jawatanIds[] = (int) ($waran->pegawai?->jawatan_gred?->jawatan_id ?? 0);
+
+                return $jawatanIds;
+            })
+            ->filter(fn (int $jawatanId): bool => $jawatanId > 0)
+            ->unique()
+            ->values();
+
+        if ($jawatanIds->isEmpty()) {
+            return [];
+        }
+
+        return Jawatan::query()
+            ->whereIn('id', $jawatanIds)
+            ->orderBy('desc_jawatan')
+            ->pluck('desc_jawatan', 'id')
+            ->all();
+    }
+
+    protected function l9WaranQuery(?int $jawatanId = null): Builder
+    {
+        $waranQuery = WaranJawatan::query()
+            ->listed()
+            ->where(fn ($query) => $query->whereNull('status')->orWhere('status', '!=', 'removed'));
+
+        if ($jawatanId !== null) {
+            $waranQuery->where(function ($query) use ($jawatanId): void {
+                $query->whereJsonContains('jawatan_ids', $jawatanId)
+                    ->orWhereHas('jawatanGred', fn ($jawatanGredQuery) =>
+                        $jawatanGredQuery->where('jawatan_id', $jawatanId))
+                    ->orWhereHas('pegawai.jawatan_gred', fn ($jawatanGredQuery) =>
+                        $jawatanGredQuery->where('jawatan_id', $jawatanId));
+            });
+        }
+
+        $user = auth()->user();
+        if ($user && $user->isPtjScoped()) {
+            $waranQuery->where('ptj_id', (int) $user->ptj_id);
+        }
+
+        return $waranQuery;
+    }
+
+    /**
+     * @return array<int, string>
+     */
     protected function l9GradeOptionsForJawatan(mixed $jawatanId): array
     {
         if (blank($jawatanId)) {
             return [];
         }
 
-        $waranQuery = WaranJawatan::query()
-            ->listed()
+        $gredIds = $this->l9WaranQuery((int) $jawatanId)
             ->with('pegawai.jawatan_gred.gred')
-            ->where(function ($query) use ($jawatanId): void {
-                $query->whereJsonContains('jawatan_ids', (int) $jawatanId)
-                    ->orWhereHas('jawatanGred', fn ($jawatanGredQuery) =>
-                        $jawatanGredQuery->where('jawatan_id', (int) $jawatanId))
-                    ->orWhereHas('pegawai.jawatan_gred', fn ($jawatanGredQuery) =>
-                        $jawatanGredQuery->where('jawatan_id', (int) $jawatanId));
-            })
-            ->where(fn ($query) => $query->whereNull('status')->orWhere('status', '!=', 'removed'));
-
-        $user = auth()->user();
-        if ($user && $user->isUser() && filled($user->ptj_id)) {
-            $waranQuery->where(function ($query) use ($user): void {
-                $query->where('ptj_id', $user->ptj_id)
-                    ->orWhereHas('pegawai', fn ($pegawaiQuery) => $pegawaiQuery
-                        ->where('ptj_id', $user->ptj_id));
-            });
-        }
-
-        $gredIds = $waranQuery
             ->get()
             ->map(fn (WaranJawatan $waran): int => (int) (
                 $waran->pegawai?->jawatan_gred?->gred_id ?? 0

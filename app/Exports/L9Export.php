@@ -58,8 +58,9 @@ class L9Export implements FromCollection, WithCustomStartCell, WithEvents
             ->implode('/');
 
         $countsByProgram = [];
+        $user = auth()->user();
 
-        $warans = WaranJawatan::query()
+        $waranQuery = WaranJawatan::query()
             ->listed()
             ->with([
                 'aktiviti.program',
@@ -73,16 +74,13 @@ class L9Export implements FromCollection, WithCustomStartCell, WithEvents
                         $jawatanGredQuery->where('jawatan_id', $this->jawatanId))
                     ->orWhereHas('pegawai.jawatan_gred', fn (Builder $jawatanGredQuery): Builder =>
                         $jawatanGredQuery->where('jawatan_id', $this->jawatanId));
-            })
-            ->when(
-                auth()->user()?->isUser() && filled(auth()->user()->ptj_id),
-                fn (Builder $query): Builder => $query->where(function (Builder $query): void {
-                    $query->where('ptj_id', auth()->user()->ptj_id)
-                        ->orWhereHas('pegawai', fn (Builder $pegawaiQuery): Builder =>
-                            $pegawaiQuery->where('ptj_id', auth()->user()->ptj_id));
-                }),
-            )
-            ->get()
+            });
+
+        if ($user && $user->isPtjScoped()) {
+            $waranQuery->where('ptj_id', (int) $user->ptj_id);
+        }
+
+        $warans = $waranQuery->get()
             ->filter(fn (WaranJawatan $waran) => ($waran->status ?? 'active') !== 'removed');
 
         foreach ($warans as $waran) {
