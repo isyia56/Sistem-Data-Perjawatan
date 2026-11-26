@@ -33,6 +33,11 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
      */
     public function collection(): Collection
     {
+        $user = auth()->user();
+        $scopedPtjId = $user && $user->isPtjScoped()
+            ? (int) $user->ptj_id
+            : null;
+
         $waranJawatans = WaranJawatan::query()
             ->listed()
             ->where(function (Builder $query): void {
@@ -41,12 +46,8 @@ class L8Export extends DefaultValueBinder implements FromCollection, WithCustomS
             })
             ->where('aktiviti_id', $this->aktivitiId)
             ->when(
-                auth()->user()?->isUser() && filled(auth()->user()->ptj_id),
-                fn (Builder $query): Builder => $query->where(function (Builder $query): void {
-                    $query->where('ptj_id', auth()->user()->ptj_id)
-                        ->orWhereHas('pegawai', fn (Builder $pegawaiQuery): Builder => $pegawaiQuery
-                            ->where('ptj_id', auth()->user()->ptj_id));
-                }),
+                $scopedPtjId !== null,
+                fn ($query) => $query->where('ptj_id', $scopedPtjId),
             )
             ->with([
                 'aktiviti.program',

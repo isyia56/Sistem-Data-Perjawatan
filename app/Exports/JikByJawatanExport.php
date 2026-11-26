@@ -89,11 +89,16 @@ class JikByJawatanExport implements FromCollection, WithEvents, WithStrictNullCo
 
         $jawatan = Jawatan::findOrFail($this->jawatan_id);
 
+        $user = auth()->user();
+        $scopedPtjId = $user && $user->isPtjScoped()
+            ? (int) $user->ptj_id
+            : null;
+
         $warans = WaranJawatan::with(['ptj', 'aktiviti.program', 'pegawai'])
             ->whereJsonContains('jawatan_ids', $this->jawatan_id)
             ->when(
-                auth()->user()?->isUser() && filled(auth()->user()->ptj_id),
-                fn ($query) => $query->where('ptj_id', auth()->user()->ptj_id),
+                $scopedPtjId !== null,
+                fn ($query) => $query->where('ptj_id', $scopedPtjId),
             )
             ->orderBy('ptj_id')
             ->get();
